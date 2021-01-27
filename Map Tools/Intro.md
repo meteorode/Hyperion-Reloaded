@@ -33,16 +33,17 @@ json like:
 "Maps":
 [
     {
-        "name":"",  // 
-        "backgroundImage":"", //
+        "name":"MLB-1",  // Used to identify maps 
+        "backgroundImage":"mlp-1.png", // Transparent if none.
         "height":8,
         "width":8,
-        "generalTileColor":"RED", // Used
-        "SpecialTiles": //  
+        "generalTileColor":"RED", // Also could be used in tile materials.
+        "SpecialTiles": //  All special tiles.
         [
             {
                 "tileType":"Heroes",    // Listed in Abstract
-                "tileScript":"",    // Function
+                "tileScript":"MLB-1-2-2.lua",    // Use lua(or some other scripts) to talk/fight/etc
+                "tileColor": "GREEN",   //  
                 "x":2,
                 "y":2
             },
