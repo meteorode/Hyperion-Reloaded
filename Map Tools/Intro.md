@@ -26,6 +26,39 @@ graph TD;
 
 ## Map Script Format
 
+json like:
+
+```json
+{
+"Maps":
+[
+    {
+        "name":"",  // 
+        "backgroundImage":"", //
+        "height":8,
+        "width":8,
+        "generalTileColor":"RED", // Used
+        "SpecialTiles": //  
+        [
+            {
+                "tileType":"Heroes",    // Listed in Abstract
+                "tileScript":"",    // Function
+                "x":2,
+                "y":2
+            },
+            {
+
+            }
+        ]
+    },
+    {
+
+    }
+]
+}
+
+```
+
 ## Map Data
 
 ## Map Example
