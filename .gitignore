@@ -1,3 +1,5 @@
 
 .DS_Store
 NLP/bert-chinese-test.py
+NLP/bert_chn_test.py
+NLP/spacy_test.py
