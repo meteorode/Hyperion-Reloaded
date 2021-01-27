@@ -68,3 +68,47 @@ json like:
 
 ### Final Script
 
+```json
+{
+"Maps":
+[
+    {
+        "name":"MLB-1",  // Each area shown as a
+        "backgroundImage":"images/mlp-1.png", // Transparent if none.
+        "height":4,
+        "width":8,
+        "generalTileColor":"YELLOW", // Also could be used in tile materials.
+        "Areas":    // Area with same color, __MUST_ a rectangle.
+        [
+            {
+                "name":"",
+                "startX":1,
+                "startY":1,
+                "height":2,
+                "width":2,
+                "areaColor":"GREEN"
+            },
+            {
+                
+            }
+        ],
+        "SpecialTiles": //  All special tiles.
+        [
+            {
+                "tileType":"Friends",    // Listed in Abstract
+                "tileScript":"MLB-1-3-2.lua",    // Use lua(or some other scripts) to talk/fight/etc
+                "tileColor": "YELLOW",   //  
+                "x":3,
+                "y":2
+            },
+            {
+
+            }
+        ]
+    },
+    {
+
+    }
+]
+}
+```
