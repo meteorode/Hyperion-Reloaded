@@ -15,3 +15,17 @@
 >   我们相信，这个工具既能满足米饭老师玩小马宝莉冒险游戏的需求；也能在Hyperion里为虚拟DM发挥作用
 
 ## Structure
+
+```mermaid
+
+graph TD;
+    R[Raw Map Info]-->|text Parser|M[Map Script]
+    M-->|data Compiler|D{Map Data} 
+    M-->|data Presenter|S[Map Screen]
+```
+
+## Map Script Format
+
+## Map Data
+
+## Map Example
