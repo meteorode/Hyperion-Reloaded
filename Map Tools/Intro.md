@@ -19,12 +19,12 @@
 ```mermaid
 
 graph TD;
-    R[Raw Map Info]-->|text Parser|M[Map Script]
-    M-->|data Compiler|D{Map Data} 
-    M-->|data Presenter|S[Map Screen]
+    R[Raw Map Info]-->|text Parser|M[Map Data]
+    M-->|data Compiler|G{Game Data} 
+    M-->|data Presenter|MG[Map in Game]
 ```
 
-## Map Script Format
+## Map Data Format
 
 json like:
 
@@ -60,6 +60,11 @@ json like:
 
 ```
 
-## Map Data
-
 ## Map Example
+
+### Raw data
+
+![小马宝莉地图 for 米饭老师](images/mlb-1.png)
+
+### Final Script
+
