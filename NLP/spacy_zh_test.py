@@ -155,5 +155,6 @@ def abstract(sent):
 #walk_through(shediao_doc)
 guojings = time_line("郭靖", shediao_doc)
 for guojing in guojings:
-    print(guojing.text)
-    abstract(guojing)
+    #print(guojing.text)
+    for token in guojing:
+        print(token.text, token.dep_)
