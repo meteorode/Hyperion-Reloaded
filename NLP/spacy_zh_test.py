@@ -136,25 +136,18 @@ def time_line(person, doc):
     return person_track
 
 def abstract(sent):
-    nsubj = '路人甲'
-    dobj = '飞刀'
-    action = '躲开'
-    root = sent.root
-    if root.pos_ == 'VERB':
-        action = root.text
+    abs = ''
     for token in sent:
         if token.dep_ == 'nsubj':
-            nsubj = token.text
+            abs += token.text
+        elif token.dep_ == 'ROOT':
+            abs += token.text
         elif token.dep_ == 'dobj':
-            dobj = token.text
-    print (nsubj + action + dobj)
-
-
+            abs += token.text
+    return abs
 
 #print("Similarity between 神雕侠侣 and 射雕英雄传 docs is{}".format(calc_similarity(shediao_doc, shendiao_doc)))
 #walk_through(shediao_doc)
 guojings = time_line("郭靖", shediao_doc)
 for guojing in guojings:
-    #print(guojing.text)
-    for token in guojing:
-        print(token.text, token.dep_)
+    print(abstract(guojing))
