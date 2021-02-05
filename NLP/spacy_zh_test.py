@@ -146,6 +146,17 @@ def abstract(sent):
             abs += token.text
     return abs
 
+def count_labels(doc):
+    labels = {}
+    for ent in doc.ents:
+        if ent.label_ in labels:
+            labels[ent.label_] += 1
+        else:
+            labels[ent.label_] = 1
+    print(sorted(labels.items(), key=lambda kv: kv[1], reverse=True))
+
+count_labels(shediao_doc)
+
 #print("Similarity between 神雕侠侣 and 射雕英雄传 docs is{}".format(calc_similarity(shediao_doc, shendiao_doc)))
 #walk_through(shediao_doc)
 guojings = time_line("郭靖", shediao_doc)
