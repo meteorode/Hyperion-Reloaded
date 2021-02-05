@@ -155,10 +155,28 @@ def count_labels(doc):
             labels[ent.label_] = 1
     print(sorted(labels.items(), key=lambda kv: kv[1], reverse=True))
 
-count_labels(shediao_doc)
+def life_of_yours(name, doc):
+    events = []
+    lifeline = time_line(name, doc)
+    for spark in lifeline:
+        events.append(abstract(spark))
+    return events
 
 #print("Similarity between 神雕侠侣 and 射雕英雄传 docs is{}".format(calc_similarity(shediao_doc, shendiao_doc)))
 #walk_through(shediao_doc)
-guojings = time_line("郭靖", shediao_doc)
-for guojing in guojings:
-    print(abstract(guojing))
+
+# Labels Counting results in 「射雕英雄传」
+# [('PERSON', 19555), ('CARDINAL', 7091), ('GPE', 1758), ('DATE', 1655), ('LOC', 665), ('ORG', 585), ('WORK_OF_ART', 416), 
+# ('TIME', 362), ('ORDINAL', 341), ('FAC', 334), ('NORP', 216), ('EVENT', 87), ('PERCENT', 78), ('QUANTITY', 62), ('PRODUCT', 43), ('LANGUAGE', 30), ('MONEY', 19), ('LAW', 1)]
+
+def check_events(doc):
+    events = {}
+    assert doc.has_annotation("SENT_START")
+    for sent in doc.sents:
+        for ent in sent.ents:
+            if ent == 'EVENT':
+                events[sent.root.text] = sent.text
+    return events
+
+shediao_events = check_events(shediao_doc)
+print(sorted(shediao_events.items(), key=lambda kv: kv[1], reverse=True))
