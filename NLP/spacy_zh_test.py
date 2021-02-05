@@ -174,8 +174,8 @@ def check_events(doc):
     assert doc.has_annotation("SENT_START")
     for sent in doc.sents:
         for ent in sent.ents:
-            if ent == 'EVENT':
-                events[sent.root.text] = sent.text
+            if ent.label_ == 'EVENT':
+                events[ent.text] = sent.text
     return events
 
 shediao_events = check_events(shediao_doc)
