@@ -169,14 +169,14 @@ def life_of_yours(name, doc):
 # [('PERSON', 19555), ('CARDINAL', 7091), ('GPE', 1758), ('DATE', 1655), ('LOC', 665), ('ORG', 585), ('WORK_OF_ART', 416), 
 # ('TIME', 362), ('ORDINAL', 341), ('FAC', 334), ('NORP', 216), ('EVENT', 87), ('PERCENT', 78), ('QUANTITY', 62), ('PRODUCT', 43), ('LANGUAGE', 30), ('MONEY', 19), ('LAW', 1)]
 
-def check_events(doc):
+def check_ents(doc, ent_type):
     events = {}
     assert doc.has_annotation("SENT_START")
     for sent in doc.sents:
         for ent in sent.ents:
-            if ent.label_ == 'EVENT':
-                events[ent.text] = sent.text
+            if ent.label_ == ent_type:
+                events[ent.text] = [ent.root.tag_, sent.text]
     return events
 
-shediao_events = check_events(shediao_doc)
+shediao_events = check_ents(shediao_doc, 'GPE')
 print(sorted(shediao_events.items(), key=lambda kv: kv[1], reverse=True))
