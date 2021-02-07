@@ -148,9 +148,6 @@ def life_of_yours(name, doc):
         events.append(abstract(spark))
     return events
 
-#print("Similarity between 神雕侠侣 and 射雕英雄传 docs is{}".format(calc_similarity(shediao_doc, shendiao_doc)))
-#walk_through(shediao_doc)
-
 # Labels Counting results in 「射雕英雄传」
 # [('PERSON', 19555), ('CARDINAL', 7091), ('GPE', 1758), ('DATE', 1655), ('LOC', 665), ('ORG', 585), ('WORK_OF_ART', 416), 
 # ('TIME', 362), ('ORDINAL', 341), ('FAC', 334), ('NORP', 216), ('EVENT', 87), ('PERCENT', 78), ('QUANTITY', 62), ('PRODUCT', 43), ('LANGUAGE', 30), ('MONEY', 19), ('LAW', 1)]
@@ -171,7 +168,6 @@ def whether_talk(token): # check a token is a buzz word or not.
         if (bw in token.text) and (token.pos_ == 'VERB'):
             silent = False
     return silent
-
 
 def dixit(name, doc): # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
                       # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
