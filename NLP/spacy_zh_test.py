@@ -101,7 +101,7 @@ def walk_through(name, doc):    # Timeline for {name} wandering in {doc}
     bio = []
     for sent in doc.sents:
         for token in sent:
-            if (token_is_subject_with_action(token) == True and name in token.text):
+            if (name in token.text):
                 bio.append(sent)    # Span collection
     return bio
 
@@ -163,15 +163,15 @@ def check_ents(doc, ent_type):
 
 def whether_talk(token): # check a token is a buzz word or not.
     buzz_words = ['言', '说', '道', '谈', '论']
-    silent = True
+    is_talking = False
     for bw in buzz_words:
         if (bw in token.text) and (token.pos_ == 'VERB'):
-            silent = False
-    return silent
+            is_talking = True
+    return is_talking
 
 def dixit(name, doc): # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
                       # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
-    bio = walk_through(name , doc)
+    bio = walk_through(name, doc)
     dixit_words = []
     for spark in bio:
         for word in spark:
