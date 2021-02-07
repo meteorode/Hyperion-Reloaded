@@ -178,5 +178,5 @@ def check_ents(doc, ent_type):
                 events[ent.text] = [ent.root.tag_, sent.text]
     return events
 
-shediao_events = check_ents(shediao_doc, 'GPE')
+shediao_events = check_ents(shediao_doc, 'DATE')
 print(sorted(shediao_events.items(), key=lambda kv: kv[1], reverse=True))
