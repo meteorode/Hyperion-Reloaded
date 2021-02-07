@@ -68,14 +68,6 @@ def read_chapters(book):
             text += file.read()
     return text
 
-#shendiao_text = read_chapters(shendiao)
-shediao_text = read_chapters(shediao)
-#tianlong_text =read_chapters(tianlong)
-
-#shendiao_doc = nlp(shendiao_text)
-shediao_doc = nlp(shediao_text)
-#ianlong_doc = nlp(tianlong_text)
-
 def token_is_subject_with_action(token):
     nsubj = token.dep_ == 'nsubj'
     head_verb = token.head.pos_ == 'VERB'
@@ -104,20 +96,14 @@ def count_ents(doc):
             entities[ent.text] = 1
     print("top entities{}".format(sorted(entities.items(), key=lambda kv: kv[1], reverse=True)[:30]))
 
-def walk_through(doc):
+def walk_through(name, doc):    # Timeline for {name} wandering in {doc}
     assert doc.has_annotation("SENT_START")
-    nsubj = '路人甲'
-    dobj = '飞刀'
-    action = '躲开了'
+    bio = []
     for sent in doc.sents:
         for token in sent:
-            if (token_is_subject_with_action(token) == True):
-                nsubj = token.text
-            elif token_is_object(token) == True:
-                dobj = token.text
-        action = sent.root
-        if (check_battle_words(action) == True):
-            print(sent.text)
+            if (token_is_subject_with_action(token) == True and name in token.text):
+                bio.append(sent)    # Span collection
+    return bio
 
 def calc_similarity(doc1, doc2):
     return doc1.similarity(doc2)
@@ -178,5 +164,31 @@ def check_ents(doc, ent_type):
                 events[ent.text] = [ent.root.tag_, sent.text]
     return events
 
-shediao_events = check_ents(shediao_doc, 'DATE')
-print(sorted(shediao_events.items(), key=lambda kv: kv[1], reverse=True))
+def whether_talk(token): # check a token is a buzz word or not.
+    buzz_words = ['言', '说', '道', '谈', '论']
+    silent = True
+    for bw in buzz_words:
+        if (bw in token.text) and (token.pos_ == 'VERB'):
+            silent = False
+    return silent
+
+
+def dixit(name, doc): # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
+                      # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
+    bio = walk_through(name , doc)
+    dixit_words = []
+    for spark in bio:
+        for word in spark:
+            next_word = word.nbor() # next word
+            if (name in word.text) and (word.is_ancestor(next_word) == True) and (whether_talk(next_word) == True): # Check format like {name} [said]
+                dixit_words.append(spark)
+    return dixit_words
+
+def test():
+    xiao_ao = read_chapters(xiaoao)
+    xiaoao_doc = nlp(xiao_ao)
+    pingzhi_say = dixit('林平之', xiaoao_doc)
+    for p in pingzhi_say:
+        print(p.text)
+
+test()
