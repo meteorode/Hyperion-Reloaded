@@ -161,12 +161,13 @@ def check_ents(doc, ent_type):
                 events[ent.text] = [ent.root.tag_, sent.text]
     return events
 
-def whether_talk(token): # check a token is a buzz word or not.
+def whether_talk(words): # check a list of [token] containing a buzz word or not.
     buzz_words = ['言', '说', '道', '谈', '论']
     is_talking = False
     for bw in buzz_words:
-        if (bw in token.text) and (token.pos_ == 'VERB'):
-            is_talking = True
+        for token in words:
+            if (bw in token.text) and (token.pos_ == 'VERB'):
+                is_talking = True
     return is_talking
 
 def dixit(name, doc): # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
@@ -175,8 +176,8 @@ def dixit(name, doc): # Etymology Borrowed from Latin ipse dīxit (“he himself
     dixit_words = []
     for spark in bio:
         for word in spark:
-            next_word = word.nbor() # next word
-            if (name in word.text) and (word.is_ancestor(next_word) == True) and (whether_talk(next_word) == True): # Check format like {name} [said]
+            words_related = word.children # Word's children.
+            if (name in word.text) and (whether_talk(words_related) == True): # Check format like {name} [said]
                 dixit_words.append(spark)
     return dixit_words
 
