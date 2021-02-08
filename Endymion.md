@@ -11,3 +11,10 @@ graph TD;
     I-->|script Template|GS{Game Script} 
     I-->|map Tools|M[Maps]
 ```
+
+```mermaid
+
+graph TD;
+    CJD[Card Json Data]-->|card template Formatter|CP[Card for Print]
+    CJD-->|game data Parser|GD{Game Data} 
+```
