@@ -100,9 +100,8 @@ def walk_through(name, doc):    # Timeline for {name} wandering in {doc}
     assert doc.has_annotation("SENT_START")
     bio = []
     for sent in doc.sents:
-        for token in sent:
-            if (name in token.text):
-                bio.append(sent)    # Span collection
+        if name in sent.text:
+            bio.append(sent)    # Span collection
     return bio
 
 def calc_similarity(doc1, doc2):
@@ -177,7 +176,7 @@ def dixit(name, doc): # Etymology Borrowed from Latin ipse dīxit (“he himself
     for spark in bio:
         for word in spark:
             words_related = word.children # Word's children.
-            if (name in word.text) and (whether_talk(words_related) == True): # Check format like {name} [said]
+            if (name in spark.text) and (whether_talk(words_related) == True): # Check format like {name} [said]
                 dixit_words.append(spark)
     return dixit_words
 
