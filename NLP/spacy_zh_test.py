@@ -163,8 +163,8 @@ def check_ents(doc, ent_type):
 def whether_talk(words): # check a list of [token] containing a buzz word or not.
     buzz_words = ['言', '说', '道', '谈', '论']
     is_talking = False
-    for bw in buzz_words:
-        for token in words:
+    for token in words:
+        for bw in buzz_words:
             if (bw in token.text) and (token.pos_ == 'VERB'):
                 is_talking = True
     return is_talking
