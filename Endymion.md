@@ -2,6 +2,10 @@
 
 >   Draft of Hyperion
 
+## 💡Inspiration and core principle
+
+1.  
+
 ## Structure
 
 ```mermaid
