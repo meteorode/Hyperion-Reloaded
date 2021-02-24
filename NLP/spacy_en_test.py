@@ -12,7 +12,10 @@ p = Path('.')   # current Path
 #nlp = spacy.load("zh_core_web_lg")
 nlp = spacy.load('en_core_web_trf') # spacy 3.0 stable model.
 
-person_names = []
+person_names = ["Alice"]
+
+alice_txts = list(p.glob('fairy_tales/Alice in Wonderland/*.txt'))
+alice_txts.sort()
 
 def read_chapters(book):
     text = ''
@@ -114,7 +117,8 @@ def check_ents(doc, ent_type):
     return events
 
 def whether_talk(words): # check a list of [token] containing a buzz word or not.
-    buzz_words = ['言', '说', '道', '谈', '论']
+    #buzz_words = ['言', '说', '道', '谈', '论']
+    buzz_words = ["say"]
     is_talking = False
     for token in words:
         for bw in buzz_words:
@@ -134,10 +138,10 @@ def dixit(name, doc): # Etymology Borrowed from Latin ipse dīxit (“he himself
     return dixit_words
 
 def test():
-    xiao_ao = read_chapters(xiaoao)
-    xiaoao_doc = nlp(xiao_ao)
-    pingzhi_say = dixit('林平之', xiaoao_doc)
-    for p in pingzhi_say:
-        print(p.text)
+    alice = read_chapters(alice_txts)
+    alice_doc = nlp(alice)
+    alice_words = dixit('Alice', alice_doc)
+    for aw in alice_words:
+        print(aw.text)
 
 test()
