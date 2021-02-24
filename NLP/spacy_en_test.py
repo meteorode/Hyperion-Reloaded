@@ -77,14 +77,14 @@ def time_line(person, doc):
     return person_track
 
 def abstract(sent):
-    abs = ''
+    abs = ' '
     for token in sent:
         if token.dep_ == 'nsubj':
-            abs += token.text
+            abs += token.text + ' '
         elif token.dep_ == 'ROOT':
-            abs += token.text
+            abs += token.text  + ' '
         elif token.dep_ == 'dobj':
-            abs += token.text
+            abs += token.text + ' '
     return abs
 
 def count_labels(doc):
@@ -140,8 +140,9 @@ def dixit(name, doc): # Etymology Borrowed from Latin ipse dīxit (“he himself
 def test():
     alice = read_chapters(alice_txts)
     alice_doc = nlp(alice)
-    alice_words = dixit('Alice', alice_doc)
-    for aw in alice_words:
-        print(aw.text)
+    # alice_words = dixit('Alice', alice_doc)
+    alice_timeline = life_of_yours("Alice", alice_doc)
+    for at in alice_timeline:
+        print(at)
 
 test()
