@@ -8,10 +8,28 @@ Cards() is a data structure used to:
 2.  video game version of board/card games
 3.  make other video games
 
-## Definition
+## Template
 
 ```json
 {
-    
+    "Roles":
+    [
+
+    ],
+    "Actions":
+    [
+
+    ],
+    "Gears":
+    [
+
+    ],
+    "Skills":
+    [
+
+    ]
 }
 ```
+
+## Keywords definition
+
