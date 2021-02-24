@@ -59,7 +59,8 @@ with open('novels/jinyong/person_list.txt', 'r') as file:
 
 # spacy.prefer_gpu()  # Using GPU to run programm
 
-nlp = spacy.load("zh_core_web_lg")
+#nlp = spacy.load("zh_core_web_lg")
+nlp = spacy.load('zh_core_web_trf') # spacy 3.0 stable model.
 
 def read_chapters(book):
     text = ''
