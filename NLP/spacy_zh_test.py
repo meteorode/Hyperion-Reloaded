@@ -185,7 +185,8 @@ def test():
     xiao_ao = read_chapters(xiaoao)
     xiaoao_doc = nlp(xiao_ao)
     pingzhi_say = dixit('林平之', xiaoao_doc)
-    for p in pingzhi_say:
-        print(p.text)
+    with open('chn_result.txt', 'r+') as file:
+        for ps in pingzhi_say:
+            file.write(ps.text)
 
 test()
