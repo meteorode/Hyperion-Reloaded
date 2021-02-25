@@ -4,6 +4,15 @@
 
 ![Model structure](model.png)
 
+1.  心：
+    -   
+2.  智：
+    -   
+3.  技：
+    -   
+4.  体：
+    -   
+
 ### Model Reference
 
 [16 Personalties][1]
