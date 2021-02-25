@@ -31,4 +31,14 @@
 
 ## NLP Analysis
 
+>   See scripts/persona.py for details.
+
+### 心
+
+### 智
+
+### 技
+
+### 体
+
 ## World Construction
