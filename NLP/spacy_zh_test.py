@@ -57,6 +57,9 @@ with open('novels/jinyong/person_list.txt', 'r') as file:
     for line in lines:
         person_names.append(line.rstrip('\n'))
 
+beixue = list(p.glob('books/beixue/*.txt'))
+beixue.sort()
+
 # spacy.prefer_gpu()  # Using GPU to run programm
 
 #nlp = spacy.load("zh_core_web_lg")
@@ -182,11 +185,11 @@ def dixit(name, doc): # Etymology Borrowed from Latin ipse dīxit (“he himself
     return dixit_words
 
 def test():
-    xiao_ao = read_chapters(xiaoao)
-    xiaoao_doc = nlp(xiao_ao)
-    pingzhi_say = dixit('林平之', xiaoao_doc)
-    with open('chn_result.txt', 'r+') as file:
-        for ps in pingzhi_say:
-            file.write(ps.text)
+    cup_snow = read_chapters(beixue)
+    cup_snow_doc = nlp(cup_snow)
+    luohan_say = dixit('骆寒', cup_snow_doc)
+    with open('beixue_result.txt', 'r+') as file:
+        for ls in luohan_say:
+            file.write(ls.text)
 
 test()
