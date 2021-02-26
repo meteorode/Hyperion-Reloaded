@@ -85,7 +85,8 @@ def count_ents(doc):
             entities[ent.text] += 1
         else:
             entities[ent.text] = 1
-    print("top entities{}".format(sorted(entities.items(), key=lambda kv: kv[1], reverse=True)[:30]))
+    #print("top entities{}".format(sorted(entities.items(), key=lambda kv: kv[1], reverse=True)[:30]))
+    return entities
 
 # Part I: Sentiment Analysis to determine A char's 「心」traits
 
@@ -98,9 +99,16 @@ def count_ents(doc):
 # Test units here.
 
 def test(): 
-    cup_snow = read_chapters(beixue)
+    cup_snow = read_chapters(shediao)
+    all_ents = {}
     for cs in cup_snow:
         cup_snow_doc = nlp(cs)
-        count_ents(cup_snow_doc)
+        temp_ents = count_ents(cup_snow_doc)
+        for ent in temp_ents:
+            if ent in all_ents:
+                all_ents[ent] += temp_ents[ent]
+            else:
+                all_ents[ent] = temp_ents[ent]
+    print("top entities{}".format(sorted(all_ents.items(), key=lambda kv: kv[1], reverse=True)[:100]))
 
 test()
