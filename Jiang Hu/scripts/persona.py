@@ -13,17 +13,17 @@ p = Path('.')   # current Path
 beixue = list(p.glob('books/beixue/*.txt'))
 beixue.sort()
 
-# spacy.prefer_gpu()  # Using GPU to run programm
+spacy.prefer_gpu()  # Using GPU to run programm
 
 #nlp = spacy.load("zh_core_web_lg")
 nlp = spacy.load('zh_core_web_trf') # spacy 3.0 stable model.
 
 def read_chapters(book):
-    text = ''
+    txts = []
     for chapter in book:
         with open(chapter, 'r') as file:
-            text += file.read()
-    return text
+            txts.append(file.read())
+    return txts
 
 # Part I: Sentiment Analysis to determine A char's 「心」traits
 
@@ -37,7 +37,8 @@ def read_chapters(book):
 
 def test(): 
     cup_snow = read_chapters(beixue)
-    cup_snow_doc = nlp(cup_snow)
+    for cs in cup_snow:
+        cup_snow_doc = nlp(cs)
     print('finished!')
 
 test()
