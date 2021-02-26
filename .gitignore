@@ -6,6 +6,5 @@ NLP/bert_chn_test.py
 NLP/spacy_test.py
 Map Tools/Intro.png
 NLP/novels.zip
-NLP/fairy_tales/Alice in Wonderland.txt
-NLP/fairy_tales/Alice in Wonderland/Alice in Wonderland.txt
-Jiang Hu/books/beixue/all.txt
+NLP/fairy_tales/
+Jiang Hu/books/
