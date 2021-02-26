@@ -78,15 +78,46 @@ def read_chapters(book):
 
 # Basic Statistics methods
 
-def count_ents(doc):
+def count_attrs(doc, attr_type):
     entities = {}
-    for ent in doc.ents:
-        if ent.text in entities:
-            entities[ent.text] += 1
-        else:
-            entities[ent.text] = 1
+    if attr_type == 'ENT':
+        for ent in doc.ents:
+            if ent.text in entities:
+                entities[ent.text] += 1
+            else:
+                entities[ent.text] = 1
+    elif attr_type == 'LABEL':
+        for ent in doc.ents:
+            if ent.label_ in entities:
+                entities[ent.label_] += 1
+            else:
+                entities[ent.label_] = 1
     #print("top entities{}".format(sorted(entities.items(), key=lambda kv: kv[1], reverse=True)[:30]))
     return entities
+
+def count_words_with_specs(doc, spec_type, spec_name):
+    result = {}
+    if spec_type == 'LABEL':
+        for ent in doc.ents:
+            if ent.label_ == spec_name:
+                if ent.text in result:
+                    result[ent.text] += 1
+                else:
+                    result[ent.text] = 1
+    
+    return result
+
+def word_cloud(name, doc, pos_types): # First count subtrees of a token, then _TO_BE_CONTINUED_
+    cloud = {}
+    for token in doc:
+        if name in token.text:
+            for leaf in token.sent:
+                if leaf.pos_ in pos_types:
+                    if leaf.text in cloud:
+                        cloud[leaf.text] += 1
+                    else:
+                        cloud[leaf.text] = 1
+    return cloud
 
 # Part I: Sentiment Analysis to determine A char's 「心」traits
 
@@ -99,16 +130,17 @@ def count_ents(doc):
 # Test units here.
 
 def test(): 
-    cup_snow = read_chapters(shediao)
-    all_ents = {}
-    for cs in cup_snow:
-        cup_snow_doc = nlp(cs)
-        temp_ents = count_ents(cup_snow_doc)
-        for ent in temp_ents:
-            if ent in all_ents:
-                all_ents[ent] += temp_ents[ent]
+    book_txts = read_chapters(beixue)
+    result = {}
+    name = '郭靖'
+    for bt in book_txts:
+        current_doc = nlp(bt)
+        temp_result = count_words_with_specs(current_doc, 'LABEL', 'WORK_OF_ART')
+        for tr in temp_result:
+            if tr in result:
+                result[tr] += temp_result[tr]
             else:
-                all_ents[ent] = temp_ents[ent]
-    print("top entities{}".format(sorted(all_ents.items(), key=lambda kv: kv[1], reverse=True)[:100]))
+                result[tr] = temp_result[tr]
+    print("Top labels: {}".format(sorted(result.items(), key=lambda kv: kv[1], reverse=True)[:100]))
 
 test()
