@@ -107,17 +107,39 @@ def count_words_with_specs(doc, spec_type, spec_name):
     
     return result
 
-def word_cloud(name, doc, pos_types): # First count subtrees of a token, then _TO_BE_CONTINUED_
+def word_cloud(name, doc, pos_types, dep_types): # First count subtrees of a token, then _TO_BE_CONTINUED_
     cloud = {}
     for token in doc:
         if name in token.text:
             for leaf in token.sent:
-                if leaf.pos_ in pos_types:
+                if leaf.pos_ in pos_types or leaf.dep_ in dep_types:
                     if leaf.text in cloud:
                         cloud[leaf.text] += 1
                     else:
                         cloud[leaf.text] = 1
     return cloud
+
+def thou_life(name, doc):
+    bio = []
+    amod = '幸运的'
+    nsubj = '路人甲'
+    root = '避开'
+    pobj = '飞刀'
+    for token in doc:
+        if name in token.text:
+            sent = token.sent
+            for word in sent:
+                if word.dep_ == 'amod':
+                    amod = word.text
+                elif word.dep_ == 'nsubj':
+                    nsubj = word.text
+                elif word.dep_ == 'ROOT':
+                    root = word.text
+                elif word.dep_ == 'pobj' or word.dep_ == 'dobj':
+                    pobj = word.text
+            sent_abs = amod + ' ' + nsubj + ' ' + root + ' ' + pobj
+            bio.append([sent.text, sent_abs])
+    return bio
 
 # Part I: Sentiment Analysis to determine A char's 「心」traits
 
@@ -130,17 +152,22 @@ def word_cloud(name, doc, pos_types): # First count subtrees of a token, then _T
 # Test units here.
 
 def test(): 
-    book_txts = read_chapters(beixue)
+    book_txts = read_chapters(shediao)
     result = {}
+    context = []
     name = '郭靖'
     for bt in book_txts:
         current_doc = nlp(bt)
-        temp_result = count_words_with_specs(current_doc, 'LABEL', 'WORK_OF_ART')
-        for tr in temp_result:
-            if tr in result:
-                result[tr] += temp_result[tr]
-            else:
-                result[tr] = temp_result[tr]
-    print("Top labels: {}".format(sorted(result.items(), key=lambda kv: kv[1], reverse=True)[:100]))
+        temp_bio = thou_life(name, current_doc)
+        context += temp_bio
+        #temp_result = word_cloud(name, current_doc, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
+        #for tr in temp_result:
+        #    if tr in result:
+        #        result[tr] += temp_result[tr]
+        #    else:
+        #        result[tr] = temp_result[tr]
+    for c in context:
+        print(c)
+    #print(name + " 's Top labels: {}".format(sorted(result.items(), key=lambda kv: kv[1], reverse=True)[:100]))
 
 test()
