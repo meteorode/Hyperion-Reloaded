@@ -171,7 +171,9 @@ def thou_life(name, doc):
                         elif leaf.dep_ == 'pobj' or leaf.dep_ == 'dobj':
                             obj = leaf.text
                     word = nsubj + ' ' + verb + ' ' + obj
-                    bio.append([t.text, t.pos_, t.dep_, t.head.text] for t in selected_sent)
+                    bio.append(selected_sent.text)
+                    bio.append('|' + t.text + '|' + t.pos_ + '|' + t.dep_ + '|' + t.head.text + '|' for t in selected_sent)
+                    bio.append('\n')
     return bio
 
 # Part I: Sentiment Analysis to determine A char's 「心」traits
@@ -202,9 +204,7 @@ def test():
     with open('test_result.txt', 'r+') as file: 
         for bio in context:
             for info_set in bio:
-                for info in info_set:
-                    file.write(info)
-                file.write('\n')
+                file.write(info_set)
     #print(name + " 's Top labels: {}".format(sorted(result.items(), key=lambda kv: kv[1], reverse=True)[:100]))
 
 test()
