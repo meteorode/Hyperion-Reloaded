@@ -119,61 +119,19 @@ def word_cloud(name, doc, pos_types, dep_types): # First count subtrees of a tok
                         cloud[leaf.text] = 1
     return cloud
 
-# Cases:
-#郭靖 PROPN conj 黄蓉
-#与 CCONJ cc 黄蓉
-#黄蓉 PROPN nsubj 行
-#向 ADP case 遗体
-#大汗 NOUN compound:nn 遗体
-#遗体 NOUN nmod:prep 行
-#行 VERB advcl:loc 辞别
-#过 PART aux:asp 行
-#礼后 NOUN case 行
-#， PUNCT punct 辞别
-#辞别 VERB ROOT 辞别
-#拖雷 PROPN dobj 辞别
-#， PUNCT punct 辞别
-#即 ADV advmod 日南归
-#日南归 VERB conj 辞别
-#。 PUNCT punct 辞别
-
-def split_sent(sent):   # Use pos_ == PUNCT to split sent to several span
-    spans = []
-    punct_pointer = 0
-    sent_len = sent.end - sent.start 
-    for i in range(sent_len):
-        if sent[i].pos_ == 'PUNCT':
-            spans.append(sent[punct_pointer:i])
-            punct_pointer = i+1
-    for span in spans:
-        if (len(span) == 0):
-            spans.remove(span)
-    return spans
-
 def thou_life(name, doc):
     bio = []
     sents = list(doc.sents)
     for sent in sents:
-        sent_split = split_sent(sent)
-        for ss in sent_split:
-            nsubj = ''
-            verb = ''
-            obj = ''
-            word = ''
-            for token in ss:
-                if name in token.text and token.pos_ == 'PROPN':
-                    selected_sent = token.sent
-                    if (token.head.pos_ == 'VERB'):
-                        verb = token.head.text
-                    for leaf in token.subtree:
-                        if leaf.dep_ == 'nsubj':
-                            nsubj = leaf.text
-                        elif leaf.dep_ == 'pobj' or leaf.dep_ == 'dobj':
-                            obj = leaf.text
-                    word = nsubj + ' ' + verb + ' ' + obj
-                    bio.append(selected_sent.text)
-                    bio.append('|' + t.text + '|' + t.pos_ + '|' + t.dep_ + '|' + t.head.text + '|' for t in selected_sent)
-                    bio.append('\n')
+        word = ''
+        for token in sent:
+            if name in token.text and token.pos_ == 'PROPN':
+                for t in sent:
+                    if (t.dep_ == 'nsubj' or t.dep_ == 'pobj' or t.dep_ == 'dobj') and (t.text not in word):
+                        word += t.text + ' '
+                    elif (t.head.text not in word):
+                        word += t.head.text + ' '
+                bio.append(word + '\n')
     return bio
 
 # Part I: Sentiment Analysis to determine A char's 「心」traits
@@ -190,7 +148,7 @@ def test():
     book_txts = read_chapters(shediao)
     result = {}
     context = []
-    name = '郭靖'
+    name = '黄蓉'
     for bt in book_txts:
         current_doc = nlp(bt)
         temp_bio = thou_life(name, current_doc)
