@@ -127,7 +127,7 @@ def thou_life(name, doc):
         for token in sent:
             if name in token.text and token.pos_ == 'PROPN':
                 for t in sent:
-                    if (t.dep_ == 'nsubj' or t.dep_ == 'pobj' or t.dep_ == 'dobj') and (t.text not in word):
+                    if (t.dep_ == 'nsubj' or t.dep_ == 'pobj' or t.dep_ == 'dobj' or t.text == token.text) and (t.text not in word):
                         word += t.text + ' '
                     elif (t.head.text not in word):
                         word += t.head.text + ' '
