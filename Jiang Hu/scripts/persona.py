@@ -184,7 +184,7 @@ def test():
         file.write('%s 的关联词如下：\n' %(name))
         for item in new_result:
             file.write(item[0] + ' %f ' %(item[1]))
-            if new_result.index(item) % 5 == 0:
+            if new_result.index(item) % 5 == 4:
                 file.write('\n')
     #print(name + " 's Word Clouds: {}".format(new_result[:200]))
 
