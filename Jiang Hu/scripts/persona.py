@@ -113,18 +113,29 @@ def count_words_with_specs(doc, spec_type, spec_name):
     return result
 
 def calc_distance(token, leaf): # Assert leaf is another token in the same sentence with token, parse the tree then calc the distance of [token, leaf]
-    pass
+    dis = 0.2 # 3 produces everything!
+    sent = token.sent
+    assert (leaf in sent) == True
+    if (leaf == token):
+        dis = 0
+    elif (leaf in token.children or leaf == token.head):
+        dis = 3
+    elif (leaf in token.subtree or leaf in token.head.children):
+        dis = 1
+
+    return dis
 
 def word_cloud(name, doc, pos_types, dep_types): # First count subtrees of a token, then _TO_BE_CONTINUED_
     cloud = {}
     for token in doc:
         if name in token.text:
             for leaf in token.sent:
+                #print (leaf.text, calc_distance(token, leaf))
                 if leaf.pos_ in pos_types or leaf.dep_ in dep_types:
                     if leaf.text in cloud:
-                        cloud[leaf.text] += 1
+                        cloud[leaf.text] += calc_distance(token, leaf)
                     else:
-                        cloud[leaf.text] = 1
+                        cloud[leaf.text] = calc_distance(token, leaf)
     return cloud
 
 def thou_life(name, doc):
@@ -155,33 +166,35 @@ def thou_life(name, doc):
 def test(): 
     book_txts = read_chapters(shediao)
     result = {}
-    context = []
+    #context = []
     name = '黄蓉'
     for bt in book_txts:
         current_doc = nlp(bt)
-        temp_bio = thou_life(name, current_doc)
-        context += temp_bio
-        #temp_result = word_cloud(name, current_doc, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
-        #for tr in temp_result:
-        #    if tr in result:
-        #        result[tr] += temp_result[tr]
-        #    else:
-        #        result[tr] = temp_result[tr]
-    with open('test_result.txt', 'r+') as file: 
-        for bio in context:
-            for info_set in bio:
-                file.write(info_set)
-    #print(name + " 's Top labels: {}".format(sorted(result.items(), key=lambda kv: kv[1], reverse=True)[:100]))
+        #temp_bio = thou_life(name, current_doc)
+        #context += temp_bio
+        temp_result = word_cloud(name, current_doc, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
+        for tr in temp_result:
+            if tr in result:
+                result[tr] += temp_result[tr]
+            else:
+                result[tr] = temp_result[tr]
+    #with open('test_result.txt', 'r+') as file: 
+    #    for bio in context:
+    #        for info_set in bio:
+    #            file.write(info_set)
+    print(name + " 's Word clouds: {}".format(sorted(result.items(), key=lambda kv: kv[1], reverse=True)[:100]))
 
 def test2():
     zh_doc = nlp("郭靖顺着各人眼光望去，只见黄沙蔽天之中，一队人马急驰而来，队中高高举起一根长杆，杆上挂着几丛白毛。")
     en_doc = en_nlp('Once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, "and what is the use of a book," thought Alice, "without pictures or conversations?" ')
+    token_to_compare = en_doc[0]
     try:
         for token in zh_doc:
-            print(token.text, token.lex, token.vocab, token.tensor, token.ent_type_, token.ent_kb_id_, token.ent_id_, token.morph, token.sentiment)
+            print(token.text, token.vocab, token.ent_type_, token.ent_kb_id_, token.ent_id_, token.morph)
         for token in en_doc:
-            print(token.text, token.lex, token.vocab, token.tensor, token.ent_type_, token.ent_kb_id_, token.ent_id_, token.morph, token.sentiment)
+            print(token.text, token.vector_norm, token.vocab, token.ent_type_, token.ent_kb_id_, token.ent_id_, token.morph, token.similarity(token_to_compare))
     except AttributeError as err:
         print(err)
 
-test2()
+test()
+#test2()
