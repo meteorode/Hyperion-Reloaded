@@ -117,11 +117,11 @@ def calc_distance(token, leaf): # Assert leaf is another token in the same sente
     sent = token.sent
     assert (leaf in sent) == True
     if (leaf == token):
-        dis = 0
+        dis = 0.0
     elif (leaf in token.children or leaf == token.head):
-        dis = 3
+        dis = 3.0
     elif (leaf in token.subtree or leaf in token.head.children):
-        dis = 1
+        dis = 1.0
 
     return dis
 
@@ -168,6 +168,7 @@ def test():
     result = {}
     #context = []
     name = '黄蓉'
+    name_en = 'huangrong'
     for bt in book_txts:
         current_doc = nlp(bt)
         #temp_bio = thou_life(name, current_doc)
@@ -178,11 +179,11 @@ def test():
                 result[tr] += temp_result[tr]
             else:
                 result[tr] = temp_result[tr]
-    #with open('test_result.txt', 'r+') as file: 
-    #    for bio in context:
-    #        for info_set in bio:
-    #            file.write(info_set)
-    print(name + " 's Word clouds: {}".format(sorted(result.items(), key=lambda kv: kv[1], reverse=True)[:100]))
+    new_result = sorted(result.items(), key=lambda kv: kv[1], reverse=True)
+    with open('%s_result.txt' %(name_en), 'w+') as file:
+        for item in new_result:
+            file.write(item[0] + ' %f' %(item[1]) + '\n')
+    #print(name + " 's Word Clouds: {}".format(new_result[:200]))
 
 def test2():
     zh_doc = nlp("郭靖顺着各人眼光望去，只见黄沙蔽天之中，一队人马急驰而来，队中高高举起一根长杆，杆上挂着几丛白毛。")
