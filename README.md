@@ -11,7 +11,7 @@
     -   video game version of board/card games
     -   make other video games
 2.  JiangHu is a Wuxia theme game trying to used Hyperion engine
-    -   See [Persona](Jiang%20%Hu/Persona.py) for details.
+    -   See [Persona](Jiang%20Hu/Persona.py) for details.
 3.  Map Tools 将形式化（甚至更进一步的，自然语言化）的地图描述解析成一个M*N的tiles map，每个tile上可以放置一些事先规定好的Obj，包括但不限于：
     *   Heroes
     *   Friends

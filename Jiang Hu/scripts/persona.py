@@ -182,7 +182,9 @@ def test():
     new_result = sorted(result.items(), key=lambda kv: kv[1], reverse=True)
     with open('%s_result.txt' %(name_en), 'w+') as file:
         for item in new_result:
-            file.write(item[0] + ' %f' %(item[1]) + '\n')
+            file.write(item[0] + ' %f' %(item[1]))
+            if new_result.index(item) % 5 == 0:
+                file.write('\n')
     #print(name + " 's Word Clouds: {}".format(new_result[:200]))
 
 def test2():
