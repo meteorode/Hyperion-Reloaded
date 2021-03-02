@@ -167,8 +167,8 @@ def test():
     book_txts = read_chapters(shediao)
     result = {}
     #context = []
-    name = '黄蓉'
-    name_en = 'huangrong'
+    name = '郭靖'
+    name_en = 'guojing'
     for bt in book_txts:
         current_doc = nlp(bt)
         #temp_bio = thou_life(name, current_doc)
@@ -181,8 +181,9 @@ def test():
                 result[tr] = temp_result[tr]
     new_result = sorted(result.items(), key=lambda kv: kv[1], reverse=True)
     with open('%s_result.txt' %(name_en), 'w+') as file:
+        file.write('%s 的关联词如下：\n' %(name))
         for item in new_result:
-            file.write(item[0] + ' %f' %(item[1]))
+            file.write(item[0] + ' %f ' %(item[1]))
             if new_result.index(item) % 5 == 0:
                 file.write('\n')
     #print(name + " 's Word Clouds: {}".format(new_result[:200]))
