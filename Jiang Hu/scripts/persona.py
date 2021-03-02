@@ -8,6 +8,12 @@ from collections import Counter
 from pathlib import Path
 import time
 
+spacy.prefer_gpu()  # Using GPU to run programm
+
+#nlp = spacy.load("zh_core_web_lg")
+nlp = spacy.load('zh_core_web_trf') # spacy 3.0 stable model.
+en_nlp = spacy.load('en_core_web_trf')
+
 p = Path('.')   # current Path
 
 # 飞雪连天射白鹿，笑书神侠倚碧鸳
@@ -54,20 +60,19 @@ bixuejian.sort()
 yuanyang = list(p.glob('novels/jinyong/yuanyangdao/*.txt'))
 yuanyang.sort()
 
-person_names = []
-with open('novels/jinyong/person_list.txt', 'r') as file:
-    lines = file.readlines()
-    for line in lines:
-        person_names.append(line.rstrip('\n'))
+# 小李飞刀成绝响，人间不见楚留香
+
+dashamo = ['novels/gulong/chuliuxiang-dashamo.txt']
 
 # 杯雪
 beixue = list(p.glob('books/beixue/*.txt'))
 beixue.sort()
 
-spacy.prefer_gpu()  # Using GPU to run programm
-
-#nlp = spacy.load("zh_core_web_lg")
-nlp = spacy.load('zh_core_web_trf') # spacy 3.0 stable model.
+jinyong_names = []
+with open('novels/jinyong/person_list.txt', 'r') as file:
+    lines = file.readlines()
+    for line in lines:
+        jinyong_names.append(line.rstrip('\n'))
 
 def read_chapters(book):
     txts = []
@@ -106,6 +111,9 @@ def count_words_with_specs(doc, spec_type, spec_name):
                     result[ent.text] = 1
     
     return result
+
+def calc_distance(token, leaf): # Assert leaf is another token in the same sentence with token, parse the tree then calc the distance of [token, leaf]
+    pass
 
 def word_cloud(name, doc, pos_types, dep_types): # First count subtrees of a token, then _TO_BE_CONTINUED_
     cloud = {}
@@ -165,4 +173,15 @@ def test():
                 file.write(info_set)
     #print(name + " 's Top labels: {}".format(sorted(result.items(), key=lambda kv: kv[1], reverse=True)[:100]))
 
-test()
+def test2():
+    zh_doc = nlp("郭靖顺着各人眼光望去，只见黄沙蔽天之中，一队人马急驰而来，队中高高举起一根长杆，杆上挂着几丛白毛。")
+    en_doc = en_nlp('Once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, "and what is the use of a book," thought Alice, "without pictures or conversations?" ')
+    try:
+        for token in zh_doc:
+            print(token.text, token.lex, token.vocab, token.tensor, token.ent_type_, token.ent_kb_id_, token.ent_id_, token.morph, token.sentiment)
+        for token in en_doc:
+            print(token.text, token.lex, token.vocab, token.tensor, token.ent_type_, token.ent_kb_id_, token.ent_id_, token.morph, token.sentiment)
+    except AttributeError as err:
+        print(err)
+
+test2()
