@@ -2,7 +2,7 @@
 
 ## *Net like
 
-以[JiangHu L]() 的结构为例（以及很多类似的设计），需要解决的问题其实是：
+以[JiangHu L](https://github.com/wagangmiao/JiangHu-L) 的结构为例（以及很多类似的设计），需要解决的问题其实是：
 
 {Word 1} + {Sent 1} + ... + {Word N} + {Sent M} = ?
 
