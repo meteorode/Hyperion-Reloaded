@@ -188,22 +188,24 @@ def test():
     with open('%s_result.txt' %(name_en), 'w+') as file:
         file.write('%s 的关联词如下：\n' %(name))
         for item in new_result:
-            file.write(item[0] + ' %f ' %(item[1]))
-            if new_result.index(item) % 5 == 4:
+            file.write(item[0] + ' %.1f ' %(item[1]))
+            if new_result.index(item) % 8 == 7:
                 file.write('\n')
     #print(name + " 's Word Clouds: {}".format(new_result[:200]))
 
 def test2():
     zh_doc = nlp("郭靖顺着各人眼光望去，只见黄沙蔽天之中，一队人马急驰而来，队中高高举起一根长杆，杆上挂着几丛白毛。")
     en_doc = en_nlp('Once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, "and what is the use of a book," thought Alice, "without pictures or conversations?" ')
-    token_to_compare = en_doc[0]
-    try:
-        for token in zh_doc:
-            print(token.text, token.vocab, token.ent_type_, token.ent_kb_id_, token.ent_id_, token.morph)
-        for token in en_doc:
-            print(token.text, token.vector_norm, token.vocab, token.ent_type_, token.ent_kb_id_, token.ent_id_, token.morph, token.similarity(token_to_compare))
-    except AttributeError as err:
-        print(err)
+    for token in zh_doc:
+        try:
+            print(token.text, token.pos_, token.tag_, token.dep_, cn_sn.concept(token.text))
+        except:
+            print(token.text, token.pos_, token.tag_, token.dep_, 'No SenticNet Concept')
+    for token in en_doc:
+        try:
+            print(token.text, token.pos_, token.tag_, token.dep_, sn.concept(token.lemma_))
+        except:
+            print(token.text, token.pos_, token.tag_, token.dep_, 'No SenticNet Concept')
 
-test()
-#test2()
+#test()
+test2()
