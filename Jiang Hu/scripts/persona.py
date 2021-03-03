@@ -133,8 +133,10 @@ def calc_distance(token, leaf): # Assert leaf is another token in the same sente
 def word_cloud(name, doc, pos_types, dep_types): # Calc polarity_value with token's related words.
     cloud = {}
     hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
+    total = 1
     for token in doc:
         if name in token.text:
+            total += 1
             for leaf in token.sent:
                 #print (leaf.text, calc_distance(token, leaf))
                 if leaf.pos_ in pos_types or leaf.dep_ in dep_types:
@@ -153,8 +155,8 @@ def word_cloud(name, doc, pos_types, dep_types): # Calc polarity_value with toke
                             for s in sentics:
                                 hourglass[s] += calc_distance(token, leaf) * sentics[s]
                         except:
-                            cloud[leaf.text] = calc_distance(token, leaf) * 0.01 # If no senticnet data, multipled by a minor 
-    return [cloud, hourglass]
+                            cloud[leaf.text] = calc_distance(token, leaf) * 0.01 # If no senticnet data, multipled by a minor
+    return [cloud, hourglass, total]
 
 # Part I: Sentiment Analysis to determine A char's 「心」traits
 
@@ -168,17 +170,23 @@ def word_cloud(name, doc, pos_types, dep_types): # Calc polarity_value with toke
 
 def test(): 
     book_txts = read_chapters(shediao)
-    result = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
     #context = []
-    name = '郭靖'
-    name_en = 'guojing'
-    for bt in book_txts:
-        current_doc = nlp(bt)
-        #temp_bio = thou_life(name, current_doc)
-        #context += temp_bio
-        temp_result = word_cloud(name, current_doc, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])[1]
-        for tr in temp_result:
-            result[tr] += temp_result[tr]
+    names = ['郭靖', '黄蓉', '洪七公', '黄药师', '欧阳锋', '杨康', '欧阳克', '周伯通', '丘处机']
+    name_en = ['guojing', 'huangrong', 'hongqigong', 'huangyaoshi', 'ouyangfeng', 'yangkang', 'ouyangke', 'zhoubotong', 'qiuchuji']
+    result_with_name = {}
+    for name in names:
+        result = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
+        sent_count = 1
+        for bt in book_txts:
+            current_doc = nlp(bt)
+            temp_wc = word_cloud(name, current_doc, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
+            temp_result = temp_wc[1]
+            sent_count += temp_wc[2]
+            for tr in temp_result:
+                result[tr] += temp_result[tr]
+        for r in result:
+            result[r] = result[r] / sent_count
+        result_with_name[name] = result
     #with open('%s_result.txt' %(name_en), 'w+') as file:
     #    file.write('%s 的关联词如下：\n' %(name))
     #    for item in new_result:
@@ -188,7 +196,10 @@ def test():
     #            file.write(item[0] + ' none ' + ' %.2f ' %(item[1]))
     #        if new_result.index(item) % 6 == 5:
     #            file.write('\n')
-    print(name + " 's Hourglss Emotion: ")
-    print(result)
+    with open('char_emotion.txt' , 'w+') as file:
+        for name in names:
+            file.write(" %s's Hourglass Emotion as below:\n" %(name))
+            for key in list(result_with_name[name]):
+                file.write(key + ': %.4f ' %(result[key]) + '\n')
 
 test()
