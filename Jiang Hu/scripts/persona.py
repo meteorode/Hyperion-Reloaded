@@ -182,12 +182,12 @@ def test():
         current_doc = nlp(bt)
         #temp_bio = thou_life(name, current_doc)
         #context += temp_bio
-        temp_result = word_cloud(name, current_doc, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
+        temp_result = word_cloud(name, current_doc, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])[1]
         for tr in temp_result:
             if tr in result:
-                result[tr] += temp_result[1][tr]
+                result[tr] += temp_result[tr]
             else:
-                result[tr] = temp_result[1][tr]
+                result[tr] = temp_result[tr]
     new_result = sorted(result.items(), key=lambda kv: abs(kv[1]), reverse=True)
     #with open('%s_result.txt' %(name_en), 'w+') as file:
     #    file.write('%s 的关联词如下：\n' %(name))
