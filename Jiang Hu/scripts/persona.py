@@ -132,7 +132,7 @@ def calc_distance(token, leaf): # Assert leaf is another token in the same sente
 
 def word_cloud(name, doc, pos_types, dep_types): # Calc polarity_value with token's related words.
     cloud = {}
-    hourglass = {}
+    hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
     for token in doc:
         if name in token.text:
             for leaf in token.sent:
@@ -141,23 +141,17 @@ def word_cloud(name, doc, pos_types, dep_types): # Calc polarity_value with toke
                     if leaf.text in cloud:
                         try:
                             cloud[leaf.text] += calc_distance(token, leaf) * cn_sn.polarity_value(leaf.text)
-                            for sentic in cn_sn.sentics(leaf.text):
-                                for k,v in sentic.items():
-                                    if k in hourglass:
-                                        hourglass[k] += v
-                                    else:
-                                        hourglass[k] = v
+                            sentics = cn_sn.sentics(leaf.text)
+                            for s in sentics:
+                                hourglass[s] += calc_distance(token, leaf) * sentics[s]
                         except:
                             cloud[leaf.text] += calc_distance(token, leaf) * 0.01 # If no senticnet data, multipled by a minor 
                     else:
                         try:
                             cloud[leaf.text] = calc_distance(token, leaf) * cn_sn.polarity_value(leaf.text)
-                            for sentic in cn_sn.sentics(leaf.text):
-                                for k,v in sentic.items():
-                                    if k in hourglass:
-                                        hourglass[k] += v
-                                    else:
-                                        hourglass[k] = v
+                            sentics = cn_sn.sentics(leaf.text)
+                            for s in sentics:
+                                hourglass[s] += calc_distance(token, leaf) * sentics[s]
                         except:
                             cloud[leaf.text] = calc_distance(token, leaf) * 0.01 # If no senticnet data, multipled by a minor 
     return [cloud, hourglass]
@@ -174,21 +168,17 @@ def word_cloud(name, doc, pos_types, dep_types): # Calc polarity_value with toke
 
 def test(): 
     book_txts = read_chapters(shediao)
-    result = {}
+    result = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
     #context = []
-    name = '黄蓉'
-    name_en = 'huangrong'
+    name = '郭靖'
+    name_en = 'guojing'
     for bt in book_txts:
         current_doc = nlp(bt)
         #temp_bio = thou_life(name, current_doc)
         #context += temp_bio
         temp_result = word_cloud(name, current_doc, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])[1]
         for tr in temp_result:
-            if tr in result:
-                result[tr] += temp_result[tr]
-            else:
-                result[tr] = temp_result[tr]
-    new_result = sorted(result.items(), key=lambda kv: abs(kv[1]), reverse=True)
+            result[tr] += temp_result[tr]
     #with open('%s_result.txt' %(name_en), 'w+') as file:
     #    file.write('%s 的关联词如下：\n' %(name))
     #    for item in new_result:
@@ -198,6 +188,7 @@ def test():
     #            file.write(item[0] + ' none ' + ' %.2f ' %(item[1]))
     #        if new_result.index(item) % 6 == 5:
     #            file.write('\n')
-    print(name + " 's Sentic Clouds: {}".format(new_result[:200]))
+    print(name + " 's Hourglss Emotion: ")
+    print(result)
 
 test()
