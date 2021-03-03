@@ -130,7 +130,7 @@ def calc_distance(token, leaf): # Assert leaf is another token in the same sente
 
     return dis
 
-def word_cloud(name, doc, pos_types, dep_types): # First count subtrees of a token, then _TO_BE_CONTINUED_
+def word_cloud(name, doc, pos_types, dep_types): # Calc polarity_value with token's related words.
     cloud = {}
     for token in doc:
         if name in token.text:
@@ -138,9 +138,15 @@ def word_cloud(name, doc, pos_types, dep_types): # First count subtrees of a tok
                 #print (leaf.text, calc_distance(token, leaf))
                 if leaf.pos_ in pos_types or leaf.dep_ in dep_types:
                     if leaf.text in cloud:
-                        cloud[leaf.text] += calc_distance(token, leaf)
+                        try:
+                            cloud[leaf.text] += calc_distance(token, leaf) * cn_sn.polarity_value(leaf.text)
+                        except:
+                            cloud[leaf.text] += calc_distance(token, leaf) * 0.001 # If no senticnet data, multipled by a minor 
                     else:
-                        cloud[leaf.text] = calc_distance(token, leaf)
+                        try:
+                            cloud[leaf.text] = calc_distance(token, leaf) * cn_sn.polarity_value(leaf.text)
+                        except:
+                            cloud[leaf.text] = calc_distance(token, leaf) * 0.001 # If no senticnet data, multipled by a minor 
     return cloud
 
 def thou_life(name, doc):
@@ -172,8 +178,8 @@ def test():
     book_txts = read_chapters(shediao)
     result = {}
     #context = []
-    name = '郭靖'
-    name_en = 'guojing'
+    name = '黄蓉'
+    name_en = 'huangrong'
     for bt in book_txts:
         current_doc = nlp(bt)
         #temp_bio = thou_life(name, current_doc)
@@ -184,12 +190,15 @@ def test():
                 result[tr] += temp_result[tr]
             else:
                 result[tr] = temp_result[tr]
-    new_result = sorted(result.items(), key=lambda kv: kv[1], reverse=True)
+    new_result = sorted(result.items(), key=lambda kv: abs(kv[1]), reverse=True)
     with open('%s_result.txt' %(name_en), 'w+') as file:
         file.write('%s 的关联词如下：\n' %(name))
         for item in new_result:
-            file.write(item[0] + ' %.1f ' %(item[1]))
-            if new_result.index(item) % 8 == 7:
+            try:
+                file.write(item[0] + ' ' + cn_sn.polarity_label(item[0]) + ' %.2f ' %(item[1]))
+            except:
+                file.write(item[0] + ' none ' + ' %.3f ' %(item[1]))
+            if new_result.index(item) % 6 == 5:
                 file.write('\n')
     #print(name + " 's Word Clouds: {}".format(new_result[:200]))
 
@@ -207,5 +216,5 @@ def test2():
         except:
             print(token.text, token.pos_, token.tag_, token.dep_, 'No SenticNet Concept')
 
-#test()
-test2()
+test()
+#test2()
