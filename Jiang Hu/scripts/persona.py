@@ -132,6 +132,7 @@ def calc_distance(token, leaf): # Assert leaf is another token in the same sente
 
 def word_cloud(name, doc, pos_types, dep_types): # Calc polarity_value with token's related words.
     cloud = {}
+    hourglass = {}
     for token in doc:
         if name in token.text:
             for leaf in token.sent:
@@ -140,29 +141,26 @@ def word_cloud(name, doc, pos_types, dep_types): # Calc polarity_value with toke
                     if leaf.text in cloud:
                         try:
                             cloud[leaf.text] += calc_distance(token, leaf) * cn_sn.polarity_value(leaf.text)
+                            for sentic in cn_sn.sentics(leaf.text):
+                                for k,v in sentic.items():
+                                    if k in hourglass:
+                                        hourglass[k] += v
+                                    else:
+                                        hourglass[k] = v
                         except:
-                            cloud[leaf.text] += calc_distance(token, leaf) * 0.001 # If no senticnet data, multipled by a minor 
+                            cloud[leaf.text] += calc_distance(token, leaf) * 0.01 # If no senticnet data, multipled by a minor 
                     else:
                         try:
                             cloud[leaf.text] = calc_distance(token, leaf) * cn_sn.polarity_value(leaf.text)
+                            for sentic in cn_sn.sentics(leaf.text):
+                                for k,v in sentic.items():
+                                    if k in hourglass:
+                                        hourglass[k] += v
+                                    else:
+                                        hourglass[k] = v
                         except:
-                            cloud[leaf.text] = calc_distance(token, leaf) * 0.001 # If no senticnet data, multipled by a minor 
-    return cloud
-
-def thou_life(name, doc):
-    bio = []
-    sents = list(doc.sents)
-    for sent in sents:
-        word = ''
-        for token in sent:
-            if name in token.text and token.pos_ == 'PROPN':
-                for t in sent:
-                    if (t.dep_ == 'nsubj' or t.dep_ == 'pobj' or t.dep_ == 'dobj' or t.text == token.text) and (t.text not in word):
-                        word += t.text + ' '
-                    elif (t.head.text not in word):
-                        word += t.head.text + ' '
-                bio.append(word + '\n')
-    return bio
+                            cloud[leaf.text] = calc_distance(token, leaf) * 0.01 # If no senticnet data, multipled by a minor 
+    return [cloud, hourglass]
 
 # Part I: Sentiment Analysis to determine A char's 「心」traits
 
@@ -187,34 +185,19 @@ def test():
         temp_result = word_cloud(name, current_doc, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
         for tr in temp_result:
             if tr in result:
-                result[tr] += temp_result[tr]
+                result[tr] += temp_result[1][tr]
             else:
-                result[tr] = temp_result[tr]
+                result[tr] = temp_result[1][tr]
     new_result = sorted(result.items(), key=lambda kv: abs(kv[1]), reverse=True)
-    with open('%s_result.txt' %(name_en), 'w+') as file:
-        file.write('%s 的关联词如下：\n' %(name))
-        for item in new_result:
-            try:
-                file.write(item[0] + ' ' + cn_sn.polarity_label(item[0]) + ' %.2f ' %(item[1]))
-            except:
-                file.write(item[0] + ' none ' + ' %.3f ' %(item[1]))
-            if new_result.index(item) % 6 == 5:
-                file.write('\n')
-    #print(name + " 's Word Clouds: {}".format(new_result[:200]))
-
-def test2():
-    zh_doc = nlp("郭靖顺着各人眼光望去，只见黄沙蔽天之中，一队人马急驰而来，队中高高举起一根长杆，杆上挂着几丛白毛。")
-    en_doc = en_nlp('Once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, "and what is the use of a book," thought Alice, "without pictures or conversations?" ')
-    for token in zh_doc:
-        try:
-            print(token.text, token.pos_, token.tag_, token.dep_, cn_sn.concept(token.text))
-        except:
-            print(token.text, token.pos_, token.tag_, token.dep_, 'No SenticNet Concept')
-    for token in en_doc:
-        try:
-            print(token.text, token.pos_, token.tag_, token.dep_, sn.concept(token.lemma_))
-        except:
-            print(token.text, token.pos_, token.tag_, token.dep_, 'No SenticNet Concept')
+    #with open('%s_result.txt' %(name_en), 'w+') as file:
+    #    file.write('%s 的关联词如下：\n' %(name))
+    #    for item in new_result:
+    #        try:
+    #            file.write(item[0] + ' ' + cn_sn.polarity_label(item[0]) + ' %.2f ' %(item[1]))
+    #        except:
+    #            file.write(item[0] + ' none ' + ' %.2f ' %(item[1]))
+    #        if new_result.index(item) % 6 == 5:
+    #            file.write('\n')
+    print(name + " 's Sentic Clouds: {}".format(new_result[:200]))
 
 test()
-#test2()
