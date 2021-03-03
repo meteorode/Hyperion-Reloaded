@@ -174,11 +174,14 @@ def test():
     names = ['郭靖', '黄蓉', '洪七公', '黄药师', '欧阳锋', '杨康', '欧阳克', '周伯通', '丘处机']
     name_en = ['guojing', 'huangrong', 'hongqigong', 'huangyaoshi', 'ouyangfeng', 'yangkang', 'ouyangke', 'zhoubotong', 'qiuchuji']
     result_with_name = {}
+    docs = []
+    for bt in book_txts:
+        docs.append(nlp(bt))
     for name in names:
         result = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
         sent_count = 1
-        for bt in book_txts:
-            current_doc = nlp(bt)
+        for doc in docs:
+            current_doc = doc
             temp_wc = word_cloud(name, current_doc, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
             temp_result = temp_wc[1]
             sent_count += temp_wc[2]
