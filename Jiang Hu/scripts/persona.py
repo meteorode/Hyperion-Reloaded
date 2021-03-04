@@ -10,6 +10,7 @@ import time
 from senticnet.senticnet import SenticNet
 from senticnet.babelsenticnet import BabelSenticNet
 import inspect
+import math
 
 spacy.prefer_gpu()  # Using GPU to run programm
 
@@ -209,10 +210,42 @@ def hourglass_analysis(book_name, docs, names):   # docs shoule be the nlp parsi
     with open('%s_char_emotion.txt' %(book_name), 'w+') as file:
         file.write('Name Pleasantness Attention Sensitivity Aptitude\n')
         for name in names:
-            file.write("%s" %(name))
+            file.write("%s " %(name))
             for key in list(hourglass_with_names[name]):
                 file.write('%.4f ' %(hourglass_with_names[name][key]) + ' ')
             file.write('\n')
+
+# Words' Sentic similarity calculation
+def calc_sentic_similarity(word1, word2):   # Using sn.sentics to calc
+    default = {'pleasantness': 0.000001, 'attention': 0.000001, 'sensitivity': 0.000001, 'aptitude': 0.000001}
+    try:
+        sentic1 = cn_sn.sentics(word1)
+    except:
+        try:
+            sentic1 = sn.sentics(word1)
+            for key in sentic1:
+                sentic1[key] = float(sentic1[key])
+        except:
+            sentic1 = default
+    try:
+        sentic2 = cn_sn.sentics(word2)
+    except:
+        try:
+            sentic2 = sn.sentics(word2)
+            for key in sentic2:
+                sentic2[key] = float(sentic2[key])
+        except:
+            sentic2 = default
+    s1_values = list(sentic1.values()) 
+    s2_values = list(sentic2.values())  # en sentic form would be {'introspection': '0.897', 'temper': '0', 'attitude': '0', 'sensitivity': '0.762'}, so needed update.
+    quotients = []
+    for i in range(len(s1_values)):
+        quotients.append(abs(s1_values[i]/(s2_values[i]+0.00001)))
+    norm = math.fsum(quotients) / len(quotients) 
+    for value in s2_values:
+        value *= norm
+    dis = math.dist(s1_values, s2_values) / 4
+    return (1 - dis)
 
 # Part II: Skill analysis
 
