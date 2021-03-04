@@ -211,7 +211,8 @@ def hourglass_analysis(book_txts, names):   # book_txts shoule be the result of 
         for r in result:
             result[r] = result[r] / sent_count
         hourglass_with_names[name] = result
-    with open('char_emotion.txt' , 'w+') as file:
+    book_name = retrieve_name(book_txts)
+    with open('%s_char_emotion.txt' %(book_name), 'w+') as file:
         for name in names:
             file.write(" %s's Hourglass Emotion as below:\n" %(name))
             for key in list(hourglass_with_names[name]):
