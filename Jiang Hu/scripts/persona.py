@@ -102,12 +102,12 @@ def retrieve_name(var):
 
 # Basic Statistics methods
 
-def count_big_names(names, txts, count_num): # Count most common names from texts
+def count_big_names(names, docs, count_num): # Count most common names from docs(not raw texts)
     name_freq = {}
-    for txt in txts:
+    for doc in docs:
         for name in names:
-            for word in txt:
-                if name == word:
+            for token in doc:
+                if name in token.text:
                     if name in name_freq:
                         name_freq[name] += 1
                     else:
@@ -194,12 +194,9 @@ def translate(cn_words):    # _TO_BE_UPDATED_
     en_words = cn_words
     return en_words
 
-def hourglass_analysis(book_txts, names):   # book_txts shoule be the result of read_chapters(book)
+def hourglass_analysis(book_name, docs, names):   # docs shoule be the nlp parsing result of read_chapters(book)
     name_en = translate(names)
     hourglass_with_names = {}
-    docs = []
-    for bt in book_txts:
-        docs.append(nlp(bt))
     for name in names:
         result = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
         sent_count = 1
@@ -212,7 +209,6 @@ def hourglass_analysis(book_txts, names):   # book_txts shoule be the result of 
         for r in result:
             result[r] = result[r] / sent_count
         hourglass_with_names[name] = result
-    book_name = retrieve_name(book_txts)
     with open('%s_char_emotion.txt' %(book_name), 'w+') as file:
         for name in names:
             file.write(" %s's Hourglass Emotion as below:\n" %(name))
@@ -239,7 +235,10 @@ def test():
     #        if new_result.index(item) % 6 == 5:
     #            file.write('\n')
     shendiao_txts = read_chapters(shendiao)
-    shendiao_names = count_big_names(jinyong_names, shendiao_txts, 20)
+    shendiao_docs = []
+    for txt in shendiao_txts:
+        shendiao_docs.append(nlp(txt))
+    shendiao_names = count_big_names(jinyong_names, shendiao_docs, 20)
     print(shendiao_names)
     #hourglass_analysis(shendiao, shendiao_names)
 
