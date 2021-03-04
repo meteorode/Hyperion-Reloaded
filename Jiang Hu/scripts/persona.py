@@ -207,10 +207,11 @@ def hourglass_analysis(book_name, docs, names):   # docs shoule be the nlp parsi
             result[r] = result[r] / sent_count
         hourglass_with_names[name] = result
     with open('%s_char_emotion.txt' %(book_name), 'w+') as file:
+        file.write('Name Pleasantness Attention Sensitivity Aptitude\n')
         for name in names:
-            file.write("%s's Hourglass Emotion as below:\n" %(name))
+            file.write("%s" %(name))
             for key in list(hourglass_with_names[name]):
-                file.write(key + ': %.4f ' %(hourglass_with_names[name][key]) + ' ')
+                file.write('%.4f ' %(hourglass_with_names[name][key]) + ' ')
             file.write('\n')
 
 # Part II: Skill analysis
@@ -231,11 +232,11 @@ def test():
     #            file.write(item[0] + ' none ' + ' %.2f ' %(item[1]))
     #        if new_result.index(item) % 6 == 5:
     #            file.write('\n')
-    shendiao_txts = read_chapters(shendiao)
-    shendiao_docs = []
-    for txt in shendiao_txts:
-        shendiao_docs.append(nlp(txt))
-    shendiao_names = list(count_big_names(jinyong_names, shendiao_docs, 20))
-    hourglass_analysis("shendiao", shendiao_docs, shendiao_names)
+    txts = read_chapters(tianlong)
+    docs = []
+    for txt in txts:
+        docs.append(nlp(txt))
+    names = list(count_big_names(jinyong_names, docs, 20))
+    hourglass_analysis("tianlong", docs, names)
 
 test()
