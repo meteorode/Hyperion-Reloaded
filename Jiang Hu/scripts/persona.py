@@ -167,6 +167,7 @@ def word_cloud(name, docs, pos_types, dep_types): # Calc polarity_value with tok
     for doc in docs:
         for token in doc:
             if name in token.text:
+                total += 1
                 for leaf in token.sent:
                     #print (leaf.text, calc_distance(token, leaf))
                     if leaf.pos_ in pos_types or leaf.dep_ in dep_types:
@@ -207,7 +208,7 @@ def hourglass_analysis(book_name, docs, names):   # docs shoule be the nlp parsi
         hourglass_with_names[name] = result
     with open('%s_char_emotion.txt' %(book_name), 'w+') as file:
         for name in names:
-            file.write(" %s's Hourglass Emotion as below:\n" %(name))
+            file.write("%s's Hourglass Emotion as below:\n" %(name))
             for key in list(hourglass_with_names[name]):
                 file.write(key + ': %.4f ' %(hourglass_with_names[name][key]) + ' ')
             file.write('\n')
