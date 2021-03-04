@@ -9,6 +9,7 @@ from pathlib import Path
 import time
 from senticnet.senticnet import SenticNet
 from senticnet.babelsenticnet import BabelSenticNet
+import inspect
 
 spacy.prefer_gpu()  # Using GPU to run programm
 
@@ -86,7 +87,35 @@ def read_chapters(book):
             txts.append(file.read())
     return txts
 
+# Methods to get var name as string.
+
+def retrieve_name(var):
+        """
+        Gets the name of var. Does it from the out most frame inner-wards.
+        :param var: variable to get name from.
+        :return: string
+        """
+        for fi in reversed(inspect.stack()):
+            names = [var_name for var_name, var_val in fi.frame.f_locals.items() if var_val is var]
+            if len(names) > 0:
+                return names[0]
+
 # Basic Statistics methods
+
+def count_big_names(names, txts, count_num): # Count most common names from texts
+    name_freq = {}
+    for word in txts:
+        for name in names:
+            if name == word:
+                if name in name_freq:
+                    name_freq[name] += 1
+                else:
+                    name_freq[name] = 1
+    name_freq = sorted(name_freq.items(), key=lambda kv: kv[1], reverse=True)
+    if len(name_freq) >= count_num:
+        return name_freq[:count_num]
+    else:
+        return name_freq
 
 def count_attrs(doc, attr_type):
     entities = {}
@@ -160,6 +189,35 @@ def word_cloud(name, doc, pos_types, dep_types): # Calc polarity_value with toke
 
 # Part I: Sentiment Analysis to determine A char's 「心」traits
 
+def translate(cn_words):    # _TO_BE_UPDATED_
+    en_words = cn_words
+    return en_words
+
+def hourglass_analysis(book_txts, names):   # book_txts shoule be the result of read_chapters(book)
+    name_en = translate(names)
+    hourglass_with_names = {}
+    docs = []
+    for bt in book_txts:
+        docs.append(nlp(bt))
+    for name in names:
+        result = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
+        sent_count = 1
+        for doc in docs:
+            temp_wc = word_cloud(name, doc, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
+            temp_result = temp_wc[1]
+            sent_count += temp_wc[2]
+            for tr in temp_result:
+                result[tr] += temp_result[tr]
+        for r in result:
+            result[r] = result[r] / sent_count
+        hourglass_with_names[name] = result
+    with open('char_emotion.txt' , 'w+') as file:
+        for name in names:
+            file.write(" %s's Hourglass Emotion as below:\n" %(name))
+            for key in list(hourglass_with_names[name]):
+                file.write(key + ': %.4f ' %(hourglass_with_names[name][key]) + ' ')
+            file.write('\n')
+
 # Part II: Skill analysis
 
 # Part III: Body measurement traits analysis
@@ -169,27 +227,6 @@ def word_cloud(name, doc, pos_types, dep_types): # Calc polarity_value with toke
 # Test units here.
 
 def test(): 
-    book_txts = read_chapters(shediao)
-    #context = []
-    names = ['郭靖', '黄蓉', '洪七公', '黄药师', '欧阳锋', '杨康', '欧阳克', '周伯通', '丘处机']
-    name_en = ['guojing', 'huangrong', 'hongqigong', 'huangyaoshi', 'ouyangfeng', 'yangkang', 'ouyangke', 'zhoubotong', 'qiuchuji']
-    result_with_name = {}
-    docs = []
-    for bt in book_txts:
-        docs.append(nlp(bt))
-    for name in names:
-        result = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
-        sent_count = 1
-        for doc in docs:
-            current_doc = doc
-            temp_wc = word_cloud(name, current_doc, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
-            temp_result = temp_wc[1]
-            sent_count += temp_wc[2]
-            for tr in temp_result:
-                result[tr] += temp_result[tr]
-        for r in result:
-            result[r] = result[r] / sent_count
-        result_with_name[name] = result
     #with open('%s_result.txt' %(name_en), 'w+') as file:
     #    file.write('%s 的关联词如下：\n' %(name))
     #    for item in new_result:
@@ -199,10 +236,9 @@ def test():
     #            file.write(item[0] + ' none ' + ' %.2f ' %(item[1]))
     #        if new_result.index(item) % 6 == 5:
     #            file.write('\n')
-    with open('char_emotion.txt' , 'w+') as file:
-        for name in names:
-            file.write(" %s's Hourglass Emotion as below:\n" %(name))
-            for key in list(result_with_name[name]):
-                file.write(key + ': %.4f ' %(result[key]) + '\n')
+    shendiao_txts = read_chapters(shendiao)
+    shendiao_names = count_big_names(jinyong_names, shendiao, 20)
+    print(shendiao_names)
+    #hourglass_analysis(shendiao, shendiao_names)
 
 test()
