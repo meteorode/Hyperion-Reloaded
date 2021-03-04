@@ -238,7 +238,7 @@ def test():
     #        if new_result.index(item) % 6 == 5:
     #            file.write('\n')
     shendiao_txts = read_chapters(shendiao)
-    shendiao_names = count_big_names(jinyong_names, shendiao, 20)
+    shendiao_names = count_big_names(jinyong_names, shendiao_txts, 20)
     print(shendiao_names)
     #hourglass_analysis(shendiao, shendiao_names)
 
