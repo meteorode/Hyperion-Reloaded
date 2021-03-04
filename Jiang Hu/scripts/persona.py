@@ -104,13 +104,14 @@ def retrieve_name(var):
 
 def count_big_names(names, txts, count_num): # Count most common names from texts
     name_freq = {}
-    for word in txts:
+    for txt in txts:
         for name in names:
-            if name == word:
-                if name in name_freq:
-                    name_freq[name] += 1
-                else:
-                    name_freq[name] = 1
+            for word in txt:
+                if name == word:
+                    if name in name_freq:
+                        name_freq[name] += 1
+                    else:
+                        name_freq[name] = 1
     name_freq = sorted(name_freq.items(), key=lambda kv: kv[1], reverse=True)
     if len(name_freq) >= count_num:
         return name_freq[:count_num]
