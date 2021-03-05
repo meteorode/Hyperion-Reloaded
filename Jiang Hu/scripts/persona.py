@@ -195,6 +195,7 @@ def word_cloud(name, docs, pos_types, dep_types): # Calc polarity_value with tok
     cloud = {}
     hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
     total = 1
+    moodtags = {}
     for doc in docs:
         for token in doc:
             if name in token.text:
@@ -203,22 +204,38 @@ def word_cloud(name, docs, pos_types, dep_types): # Calc polarity_value with tok
                     #print (leaf.text, calc_distance(token, leaf))
                     if leaf.pos_ in pos_types or leaf.dep_ in dep_types:
                         if leaf.text in cloud:
+                            dis = calc_distance(token, leaf)
                             try:
-                                cloud[leaf.text] += calc_distance(token, leaf) * cn_sn.polarity_value(leaf.text)
+                                mt = cn_sn.moodtags(leaf.text)
+                                pv = cn_sn.polarity_value(leaf.text)
                                 sentics = cn_sn.sentics(leaf.text)
+                                nmt = []
+                                for m in mt:
+                                    nmt.append(m.lstrip('#'))
+                                for nm in nmt:
+                                    dict_modify(moodtags, nm, dis, dis)
+                                cloud[leaf.text] += dis * pv
                                 for s in sentics:
-                                    hourglass[s] += calc_distance(token, leaf) * sentics[s]
+                                    hourglass[s] += dis * sentics[s]
                             except:
-                                cloud[leaf.text] += calc_distance(token, leaf) * 0.01 # If no senticnet data, multipled by a minor 
+                                cloud[leaf.text] += dis * 0.01 # If no senticnet data, multipled by a minor 
                         else:
+                            dis = calc_distance(token, leaf)
                             try:
-                                cloud[leaf.text] = calc_distance(token, leaf) * cn_sn.polarity_value(leaf.text)
+                                mt = cn_sn.moodtags(leaf.text)
+                                pv = cn_sn.polarity_value(leaf.text)
                                 sentics = cn_sn.sentics(leaf.text)
+                                nmt = []
+                                for m in mt:
+                                    nmt.append(m.lstrip('#'))
+                                for nm in nmt:
+                                    dict_modify(moodtags, nm, dis, dis)
+                                cloud[leaf.text] += dis * pv
                                 for s in sentics:
-                                    hourglass[s] += calc_distance(token, leaf) * sentics[s]
+                                    hourglass[s] += dis * sentics[s]
                             except:
-                                cloud[leaf.text] = calc_distance(token, leaf) * 0.01 # If no senticnet data, multipled by a minor
-    return [cloud, hourglass, total]
+                                cloud[leaf.text] = dis * 0.01 # If no senticnet data, multipled by a minor
+    return [cloud, hourglass, total, moodtags]
 
 # Part I: Sentiment Analysis to determine A char's 「心」traits
 
@@ -266,14 +283,8 @@ def calc_sentic_similarity(word1, word2):   # Using sn.sentics to calc
                 sentic2[key] = float(sentic2[key])
         except:
             sentic2 = default
-    s1_values = list(sentic1.values()) 
-    s2_values = list(sentic2.values())  # en sentic form would be {'introspection': '0.897', 'temper': '0', 'attitude': '0', 'sensitivity': '0.762'}, so needed update.
-    quotients = []
-    for i in range(len(s1_values)):
-        quotients.append(abs(s1_values[i]/(s2_values[i]+0.00001)))
-    norm = math.fsum(quotients) / len(quotients) 
-    for value in s2_values:
-        value *= norm
+    s1_values = list(sentic1.values())
+    s2_values = list(sentic2.values())
     dis = math.dist(s1_values, s2_values) / 4
     return (1 - dis)
 
@@ -297,13 +308,12 @@ def test():
     #            file.write('\n')
     txts = read_chapters(shediao)
     docs = []
-    sents_list = []
+    #words_list = {}
+    name = '郭靖'
     for txt in txts:
         docs.append(nlp(txt))
-    for doc in docs:
-        raw_data = eye_tracking(doc, jinyong_names)
-        for rd in raw_data:
-            print(rd)
+    name_with_moodtags = word_cloud(name, docs, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
+    print (name_with_moodtags)
     #names = list(count_big_names(jinyong_names, docs, 20))
     #hourglass_analysis("shediao", docs, names)
 
