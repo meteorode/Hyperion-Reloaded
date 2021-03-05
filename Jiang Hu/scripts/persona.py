@@ -136,6 +136,13 @@ def count_attrs(doc, attr_type):
     #print("top entities{}".format(sorted(entities.items(), key=lambda kv: kv[1], reverse=True)[:30]))
     return entities
 
+def find_sents_with_specs(doc, spec_name):
+    sents = []
+    for token in doc:
+        if token.ent_type_ == spec_name:
+            sents.append([token.text, token.sent])
+    return sents
+
 def count_words_with_specs(doc, spec_type, spec_name):
     result = {}
     if spec_type == 'LABEL':
