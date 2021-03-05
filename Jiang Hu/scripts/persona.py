@@ -288,6 +288,30 @@ def calc_sentic_similarity(word1, word2):   # Using sn.sentics to calc
     dis = math.dist(s1_values, s2_values) / 4
     return (1 - dis)
 
+def mood_analysis(book_name, docs, names):
+    mood_with_names = {}
+    for name in names:
+        mood_result = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
+        wc_with_name = word_cloud(name, docs, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
+        name_with_moodtags = wc_with_name[3]
+        total_sent = wc_with_name[2]
+        for nwm in name_with_moodtags:
+            nwm_hourglass = cn_sn.sentics(nwm)
+            for nh in nwm_hourglass:
+                nwm_hourglass[nh] *= name_with_moodtags[nwm]
+            for mr in mood_result:
+                mood_result[mr] += nwm_hourglass[mr]
+        for mr in mood_result:
+            mood_result[mr] = mood_result[mr] / total_sent
+        mood_with_names[name] = mood_result
+    with open('%s_mood_analysis_result.txt' %(book_name), 'w+') as file:
+        file.write('Name Pleasantness Attention Sensitivity Aptitude\n')
+        for name in names:
+            file.write("%s " %(name))
+            for key in list(mood_with_names[name]):
+                file.write('%.4f ' %(mood_with_names[name][key]) + ' ')
+            file.write('\n')   
+
 # Part II: Skill analysis
 
 # Part III: Body measurement traits analysis
@@ -297,24 +321,11 @@ def calc_sentic_similarity(word1, word2):   # Using sn.sentics to calc
 # Test units here.
 
 def test(): 
-    #with open('%s_result.txt' %(name_en), 'w+') as file:
-    #    file.write('%s 的关联词如下：\n' %(name))
-    #    for item in new_result:
-    #        try:
-    #            file.write(item[0] + ' ' + cn_sn.polarity_label(item[0]) + ' %.2f ' %(item[1]))
-    #        except:
-    #            file.write(item[0] + ' none ' + ' %.2f ' %(item[1]))
-    #        if new_result.index(item) % 6 == 5:
-    #            file.write('\n')
     txts = read_chapters(shediao)
     docs = []
-    #words_list = {}
-    name = '郭靖'
     for txt in txts:
         docs.append(nlp(txt))
-    name_with_moodtags = word_cloud(name, docs, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
-    print (name_with_moodtags)
-    #names = list(count_big_names(jinyong_names, docs, 20))
-    #hourglass_analysis("shediao", docs, names)
+    names = list(count_big_names(jinyong_names, docs, 20))
+    mood_analysis('shediao', docs, names)
 
 test()
