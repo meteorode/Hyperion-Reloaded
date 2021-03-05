@@ -133,12 +133,16 @@ def count_attrs(doc, attr_type):
     #print("top entities{}".format(sorted(entities.items(), key=lambda kv: kv[1], reverse=True)[:30]))
     return entities
 
-def find_sents_with_specs(doc, spec_name):
+def find_sents_with_specs(doc, spec_names):
     sents = {}
+    doc_slice = []
     for token in doc:
-        if token.ent_type_ == spec_name:
-            dict_modify(sents, token.text, '', token.sent.text)
-    return sents
+        if token.ent_type_ in spec_names:
+            if token.sent not in doc_slice:
+                doc_slice.append(token.sent)
+            token_description = token.text + ': ' + token.ent_type_
+            dict_modify(sents, token.sent.text, token_description, token_description)
+    return [sents, doc_slice]
 
 def count_words_with_specs(doc, spec_type, spec_name):
     result = {}
@@ -148,6 +152,31 @@ def count_words_with_specs(doc, spec_type, spec_name):
                 dict_modify(result, ent.text)
     
     return result
+
+def unify_name(name, name_set): # set name to real name in (name_set)
+    for n_s in name_set:
+        if (name in n_s) or (n_s in name):
+            name = n_s
+    return name 
+
+def eye_tracking(doc):  # return series like 'PERSON'(supposed to be nsubj) MOVE TO 'LOC'/'GPE' or 'PERSON' ATTEND 'EVENT'
+    scripts = []
+    doc_milestone = find_sents_with_specs(doc, ['LOC', 'GPE', 'EVENT'])[1]
+    for sent in doc_milestone:
+        nsubj = '事件的中心'
+        action = 'MOVETO'
+        destination = '华山'
+        for token in sent:
+            if ((token.ent_type_ == 'PERSON' or token.tag_ == 'PROPN') and token.dep_ == 'nsubj'): 
+                nsubj = token.text
+            elif (token.ent_type_ == 'LOC' or token.ent_type_ == 'GPE'):
+                destination = token.text
+            elif (token.ent_type_ == 'EVENT'):
+                action = 'ATTEND'
+                destination = token.text
+        script = nsubj + ' ' + action + ' ' + destination
+        scripts.append(script)
+    return scripts   
 
 def calc_distance(token, leaf): # Assert leaf is another token in the same sentence with token, parse the tree then calc the distance of [token, leaf]
     dis = 0.2 # 3 produces everything!
@@ -272,8 +301,9 @@ def test():
     for txt in txts:
         docs.append(nlp(txt))
     for doc in docs:
-        sents_list.append(find_sents_with_specs(doc, 'LOC'))
-    print(sents_list)
+        raw_data = eye_tracking(doc)
+        for rd in raw_data:
+            print(rd)
     #names = list(count_big_names(jinyong_names, docs, 20))
     #hourglass_analysis("shediao", docs, names)
 
