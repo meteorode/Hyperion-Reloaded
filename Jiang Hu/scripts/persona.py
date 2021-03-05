@@ -101,6 +101,12 @@ def retrieve_name(var):
             if len(names) > 0:
                 return names[0]
 
+def dict_modify(dic, key, value_modifier=1, value_base=1):  # A general method to modify dict(d) with key
+    if key in dic:
+        dic[key] += value_modifier
+    else:
+        dic[key] = value_base
+
 # Basic Statistics methods
 
 def count_big_names(names, docs, count_num): # Count most common names from docs(not raw texts)
@@ -109,10 +115,7 @@ def count_big_names(names, docs, count_num): # Count most common names from docs
         for name in names:
             for token in doc:
                 if name in token.text:
-                    if name in name_freq:
-                        name_freq[name] += 1
-                    else:
-                        name_freq[name] = 1
+                    dict_modify(name_freq, name)
     name_tuple = sorted(name_freq.items(), key=lambda kv: kv[1], reverse=True)
     if len(name_tuple) >= count_num:
         return dict(name_tuple[:count_num])
@@ -123,24 +126,18 @@ def count_attrs(doc, attr_type):
     entities = {}
     if attr_type == 'ENT':
         for ent in doc.ents:
-            if ent.text in entities:
-                entities[ent.text] += 1
-            else:
-                entities[ent.text] = 1
+            dict_modify(entities, ent.text)
     elif attr_type == 'LABEL':
         for ent in doc.ents:
-            if ent.label_ in entities:
-                entities[ent.label_] += 1
-            else:
-                entities[ent.label_] = 1
+            dict_modify(entities, ent.label_)
     #print("top entities{}".format(sorted(entities.items(), key=lambda kv: kv[1], reverse=True)[:30]))
     return entities
 
 def find_sents_with_specs(doc, spec_name):
-    sents = []
+    sents = {}
     for token in doc:
         if token.ent_type_ == spec_name:
-            sents.append([token.text, token.sent])
+            dict_modify(sents, token.text, '', token.sent.text)
     return sents
 
 def count_words_with_specs(doc, spec_type, spec_name):
@@ -148,10 +145,7 @@ def count_words_with_specs(doc, spec_type, spec_name):
     if spec_type == 'LABEL':
         for ent in doc.ents:
             if ent.label_ == spec_name:
-                if ent.text in result:
-                    result[ent.text] += 1
-                else:
-                    result[ent.text] = 1
+                dict_modify(result, ent.text)
     
     return result
 
@@ -272,11 +266,15 @@ def test():
     #            file.write(item[0] + ' none ' + ' %.2f ' %(item[1]))
     #        if new_result.index(item) % 6 == 5:
     #            file.write('\n')
-    txts = read_chapters(tianlong)
+    txts = read_chapters(shediao)
     docs = []
+    sents_list = []
     for txt in txts:
         docs.append(nlp(txt))
-    names = list(count_big_names(jinyong_names, docs, 20))
-    hourglass_analysis("tianlong", docs, names)
+    for doc in docs:
+        sents_list.append(find_sents_with_specs(doc, 'LOC'))
+    print(sents_list)
+    #names = list(count_big_names(jinyong_names, docs, 20))
+    #hourglass_analysis("shediao", docs, names)
 
 test()
