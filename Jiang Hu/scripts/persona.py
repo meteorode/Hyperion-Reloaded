@@ -159,16 +159,16 @@ def unify_name(name, name_set): # set name to real name in (name_set)
             name = n_s
     return name 
 
-def eye_tracking(doc):  # return series like 'PERSON'(supposed to be nsubj) MOVE TO 'LOC'/'GPE' or 'PERSON' ATTEND 'EVENT'
+def eye_tracking(doc, name_set):  # return series like 'PERSON'(supposed to be nsubj) MOVE TO 'LOC'/'GPE' or 'PERSON' ATTEND 'EVENT'
     scripts = []
     doc_milestone = find_sents_with_specs(doc, ['LOC', 'GPE', 'EVENT'])[1]
     for sent in doc_milestone:
-        nsubj = '事件的中心'
+        nsubj = '舞台中心'
         action = 'MOVETO'
         destination = '华山'
         for token in sent:
-            if ((token.ent_type_ == 'PERSON' or token.tag_ == 'PROPN') and token.dep_ == 'nsubj'): 
-                nsubj = token.text
+            if ((token.ent_type_ == 'PERSON' or token.pos_ == 'PROPN') and token.dep_ == 'nsubj'): 
+                nsubj = unify_name(token.text, name_set)
             elif (token.ent_type_ == 'LOC' or token.ent_type_ == 'GPE'):
                 destination = token.text
             elif (token.ent_type_ == 'EVENT'):
@@ -301,7 +301,7 @@ def test():
     for txt in txts:
         docs.append(nlp(txt))
     for doc in docs:
-        raw_data = eye_tracking(doc)
+        raw_data = eye_tracking(doc, jinyong_names)
         for rd in raw_data:
             print(rd)
     #names = list(count_big_names(jinyong_names, docs, 20))
