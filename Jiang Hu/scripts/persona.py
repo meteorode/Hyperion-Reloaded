@@ -157,26 +157,7 @@ def unify_name(name, name_set): # set name to real name in (name_set)
     for n_s in name_set:
         if (name in n_s) or (n_s in name):
             name = n_s
-    return name 
-
-def eye_tracking(doc, name_set):  # return series like 'PERSON'(supposed to be nsubj) MOVE TO 'LOC'/'GPE' or 'PERSON' ATTEND 'EVENT'
-    scripts = []
-    doc_milestone = find_sents_with_specs(doc, ['LOC', 'GPE', 'EVENT'])[1]
-    for sent in doc_milestone:
-        nsubj = '舞台中心'
-        action = 'MOVETO'
-        destination = '华山'
-        for token in sent:
-            if ((token.ent_type_ == 'PERSON' or token.pos_ == 'PROPN') and token.dep_ == 'nsubj'): 
-                nsubj = unify_name(token.text, name_set)
-            elif (token.ent_type_ == 'LOC' or token.ent_type_ == 'GPE'):
-                destination = token.text
-            elif (token.ent_type_ == 'EVENT'):
-                action = 'ATTEND'
-                destination = token.text
-        script = nsubj + ' ' + action + ' ' + destination
-        scripts.append(script)
-    return scripts   
+    return name  
 
 def calc_distance(token, leaf): # Assert leaf is another token in the same sentence with token, parse the tree then calc the distance of [token, leaf]
     dis = 0.2 # 3 produces everything!
@@ -238,6 +219,21 @@ def word_cloud(name, docs, pos_types, dep_types): # Calc polarity_value with tok
     return [cloud, hourglass, total, moodtags]
 
 # Part I: Sentiment Analysis to determine A char's 「心」traits
+
+def to_big_five(word): # Word would be assigned [sentics, moodtags, semanticwords] etc attr, then parse this attr to 
+    # big five personal traits
+    try:
+        sentics = cn_sn.sentics(word)
+        oldtags = cn_sn.moodtags(word)
+        moodtags = []
+        for ot in oldtags:
+            moodtags.append(ot.lstrip('#'))
+        semantic_words = cn_sn.semantics(word)
+    except:
+        sentics = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
+        moodtags = []
+        semantic_words = []
+    #_TO_BE_CONTINUE
 
 def translate(cn_words):    # _TO_BE_UPDATED_
     en_words = cn_words
@@ -312,11 +308,31 @@ def mood_analysis(book_name, docs, names):
                 file.write('%.4f ' %(mood_with_names[name][key]) + ' ')
             file.write('\n')   
 
-# Part II: Skill analysis
+# Part II: Events and Choices slicing
 
-# Part III: Body measurement traits analysis
+def dixit(name, docs): # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
+                      # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
+    dixit_words = {}
+    return dixit_words
 
-# Part IV: Intelligence analysis
+def eye_tracking(doc, name_set):  # return series like 'PERSON'(supposed to be nsubj) MOVE TO 'LOC'/'GPE' or 'PERSON' ATTEND 'EVENT'
+    scripts = []
+    doc_milestone = find_sents_with_specs(doc, ['LOC', 'GPE', 'EVENT'])[1]
+    for sent in doc_milestone:
+        nsubj = '舞台中心'
+        action = 'MOVETO'
+        destination = '华山'
+        for token in sent:
+            if ((token.ent_type_ == 'PERSON' or token.pos_ == 'PROPN') and token.dep_ == 'nsubj'): 
+                nsubj = unify_name(token.text, name_set)
+            elif (token.ent_type_ == 'LOC' or token.ent_type_ == 'GPE'):
+                destination = token.text
+            elif (token.ent_type_ == 'EVENT'):
+                action = 'ATTEND'
+                destination = token.text
+        script = nsubj + ' ' + action + ' ' + destination
+        scripts.append(script)
+    return scripts  
 
 # Test units here.
 
