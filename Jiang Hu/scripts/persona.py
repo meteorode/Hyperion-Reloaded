@@ -172,6 +172,54 @@ def calc_distance(token, leaf): # Assert leaf is another token in the same sente
 
     return dis
 
+# Words' Sentic Value/Similarity calculation
+def word_trasformer(word):
+    result = 0
+    moodtags_weight = 0.3
+    semantics_weight = 0.1
+    try:
+        polarirty_value = cn_sn.polarity_value(word)
+        sentics_value = list(cn_sn.sentics(word).values())
+        oldtags = cn_sn.moodtags(word)
+        moodtags = []
+        for ot in oldtags:
+            moodtags.append(ot.lstrip('#'))
+        semantics = cn_sn.semantics(word)
+        moodtag_modifier = # Tired, to be continue
+        for mt in moodtags:
+            polarirty_value += moodtags_weight * cn_sn.polarity_value(mt)
+    except:
+        return result
+
+def simple_sentic_similarity(sentic1, sentic2):
+    s1_values = list(sentic1.values())
+    s2_values = list(sentic2.values())
+    dis = math.dist(s1_values, s2_values) / 4
+    return (1 - dis)
+
+def calc_sentic_similarity(word1, word2):   # Using sn.sentics to calc
+    default = {'pleasantness': 0.000001, 'attention': 0.000001, 'sensitivity': 0.000001, 'aptitude': 0.000001}
+    try:
+        sentic1 = cn_sn.sentics(word1)
+    except:
+        try:
+            sentic1 = sn.sentics(word1)
+            for key in sentic1:
+                sentic1[key] = float(sentic1[key])
+        except:
+            sentic1 = default
+    try:
+        sentic2 = cn_sn.sentics(word2)
+    except:
+        try:
+            sentic2 = sn.sentics(word2)
+            for key in sentic2:
+                sentic2[key] = float(sentic2[key])
+        except:
+            sentic2 = default
+    result = simple_sentic_similarity(sentic1, sentic2)
+    return result
+
 def word_cloud(name, docs, pos_types, dep_types): # Calc polarity_value with token's related words.
     cloud = {}
     hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
@@ -220,6 +268,34 @@ def word_cloud(name, docs, pos_types, dep_types): # Calc polarity_value with tok
 
 # Part I: Sentiment Analysis to determine A char's 「心」traits
 
+Openness = ['想象力', '审美', '情感', '创造力', '开放', '哲学', '价值']
+Conscientiousness = ['能力', '公正', '逻辑', '责任', '成就', '自律', '谨慎', '克制']
+Extraversion = ['热情', '社交', '果断', '活跃', '冒险', '乐观']
+Agreeableness = ['信任', '奉献', '直率', '服从', '谦虚', '移情']
+Neuroticism = ['焦虑', '敌对', '神经质', '自我', '冲动', '脆弱']    # big five model words list
+
+def calc_persona_score(word, polarity_value, sentics, moodtags, semantics, wordsets):
+    # polarity_value, sentics, moodtags, semantics came form SenticNet and wordsets defined above
+    polarity_weight = 3
+    moodtags_weight = 0.3
+    semantics_weight = 0.1
+    total_num = len(wordsets) * (1 + polarity_weight + len(moodtags) * moodtags_weight + len(semantics) * semantics_weight) 
+    raw_score = 0
+    for w in wordsets:
+        word_sentics = cn_sn.sentics(w)
+        word_polarity = cn_sn.polarity_value(w)
+        rp_sim = (1 - (polarity_value - word_polarity)/2)
+        raw_score += rp_sim * polarity_weight
+        raw_score += simple_sentic_similarity(sentics, word_sentics)
+        for mt in moodtags:
+            mt_sentics = cn_sn.sentics(mt)
+            raw_score += simple_sentic_similarity(mt_sentics, word_sentics) * moodtags_weight
+        for sm in semantics:
+            sm_sentics = cn_sn.sentics(sm)
+            raw_score += simple_sentic_similarity(sm_sentics, word_sentics) * semantics_weight
+    score = raw_score / total_num
+    return score
+
 def to_big_five(word): # Word would be assigned [sentics, moodtags, semanticwords] etc attr, then parse this attr to 
     # big five personal traits
     try:
@@ -228,11 +304,9 @@ def to_big_five(word): # Word would be assigned [sentics, moodtags, semanticword
         moodtags = []
         for ot in oldtags:
             moodtags.append(ot.lstrip('#'))
-        semantic_words = cn_sn.semantics(word)
     except:
         sentics = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
         moodtags = []
-        semantic_words = []
     #_TO_BE_CONTINUE
 
 def translate(cn_words):    # _TO_BE_UPDATED_
@@ -257,32 +331,6 @@ def hourglass_analysis(book_name, docs, names):   # docs shoule be the nlp parsi
             for key in list(hourglass_with_names[name]):
                 file.write('%.4f ' %(hourglass_with_names[name][key]) + ' ')
             file.write('\n')
-
-# Words' Sentic similarity calculation
-def calc_sentic_similarity(word1, word2):   # Using sn.sentics to calc
-    default = {'pleasantness': 0.000001, 'attention': 0.000001, 'sensitivity': 0.000001, 'aptitude': 0.000001}
-    try:
-        sentic1 = cn_sn.sentics(word1)
-    except:
-        try:
-            sentic1 = sn.sentics(word1)
-            for key in sentic1:
-                sentic1[key] = float(sentic1[key])
-        except:
-            sentic1 = default
-    try:
-        sentic2 = cn_sn.sentics(word2)
-    except:
-        try:
-            sentic2 = sn.sentics(word2)
-            for key in sentic2:
-                sentic2[key] = float(sentic2[key])
-        except:
-            sentic2 = default
-    s1_values = list(sentic1.values())
-    s2_values = list(sentic2.values())
-    dis = math.dist(s1_values, s2_values) / 4
-    return (1 - dis)
 
 def mood_analysis(book_name, docs, names):
     mood_with_names = {}
@@ -337,11 +385,20 @@ def eye_tracking(doc, name_set):  # return series like 'PERSON'(supposed to be n
 # Test units here.
 
 def test(): 
-    txts = read_chapters(shediao)
-    docs = []
-    for txt in txts:
-        docs.append(nlp(txt))
-    names = list(count_big_names(jinyong_names, docs, 20))
-    mood_analysis('shediao', docs, names)
+    #txts = read_chapters(shediao)
+    #docs = []
+    #for txt in txts:
+    #    docs.append(nlp(txt))
+    #names = list(count_big_names(jinyong_names, docs, 20))
+    #mood_analysis('shediao', docs, names)
+    word = '脆弱'
+    polarity_value = -0.531
+    sentics = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0.771, 'aptitude': -0.822}
+    moodtags = ['生气', '恶心']
+    semantics = ['弱', '容易被破解', '易碎', '微妙', '身体虚弱']
+    result = calc_persona_score(word, polarity_value, sentics, moodtags, semantics, Openness)
+    result2 = calc_persona_score(word, polarity_value, sentics, moodtags, semantics, Extraversion)
+    result3 = calc_persona_score(word, polarity_value, sentics, moodtags, semantics, Neuroticism)
+    print(result, result2, result3)
 
 test()
