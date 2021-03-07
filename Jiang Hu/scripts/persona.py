@@ -173,51 +173,46 @@ def calc_distance(token, leaf): # Assert leaf is another token in the same sente
     return dis
 
 # Words' Sentic Value/Similarity calculation
-def word_trasformer(word):
-    result = 0
+def word_vec_similarity(vec1, vec2):    # vec1 and vec2 should be a dict
+    v1_values = list(vec1.values())
+    v2_values = list(vec2.values())
+    v1_len = len(v1_values)
+    v2_len = len(v2_values)
+    assert (v1_len == v2_len)
+    max = [1.0] * v1_len
+    min = [-1.0] * v1_len
+    dis = math.dist(v1_values, v2_values) / math.dist(max, min)
+    return (1 - dis)
+
+def word_trasformer(word):  # return a {'polarity_value': x1, 'pleasantness': x2, ...}
+    result = {'polarity_value': 0, 'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
     moodtags_weight = 0.3
     semantics_weight = 0.1
     try:
-        polarirty_value = cn_sn.polarity_value(word)
-        sentics_value = list(cn_sn.sentics(word).values())
+        result['polarity_value'] = cn_sn.polarity_value(word)
+        w_sentics = cn_sn.sentics(word)
+        for key in w_sentics:
+            result[key] += w_sentics[key]
         oldtags = cn_sn.moodtags(word)
         moodtags = []
         for ot in oldtags:
             moodtags.append(ot.lstrip('#'))
         semantics = cn_sn.semantics(word)
-        moodtag_modifier = # Tired, to be continue
         for mt in moodtags:
-            polarirty_value += moodtags_weight * cn_sn.polarity_value(mt)
+            result['polarity_value'] += moodtags_weight * cn_sn.polarity_value(mt)
+            mt_sentics = cn_sn.sentics(mt)
+            for key in mt_sentics:
+                result[key] += mt_sentics[key] * moodtags_weight
+        for sm in semantics:
+            result['polarity_value'] += semantics_weight * cn_sn.polarity_value(sm)
+            sm_sentics = cn_sn.sentics(sm)
+            for key in sm_sentics:
+                result[key] += sm_sentics[key] * semantics_weight
+        total_len = 1 + len(moodtags) * moodtags_weight + len(semantics) * semantics_weight
+        for key in result:
+            result[key] = result[key] / total_len
     except:
         return result
-
-def simple_sentic_similarity(sentic1, sentic2):
-    s1_values = list(sentic1.values())
-    s2_values = list(sentic2.values())
-    dis = math.dist(s1_values, s2_values) / 4
-    return (1 - dis)
-
-def calc_sentic_similarity(word1, word2):   # Using sn.sentics to calc
-    default = {'pleasantness': 0.000001, 'attention': 0.000001, 'sensitivity': 0.000001, 'aptitude': 0.000001}
-    try:
-        sentic1 = cn_sn.sentics(word1)
-    except:
-        try:
-            sentic1 = sn.sentics(word1)
-            for key in sentic1:
-                sentic1[key] = float(sentic1[key])
-        except:
-            sentic1 = default
-    try:
-        sentic2 = cn_sn.sentics(word2)
-    except:
-        try:
-            sentic2 = sn.sentics(word2)
-            for key in sentic2:
-                sentic2[key] = float(sentic2[key])
-        except:
-            sentic2 = default
-    result = simple_sentic_similarity(sentic1, sentic2)
     return result
 
 def word_cloud(name, docs, pos_types, dep_types): # Calc polarity_value with token's related words.
@@ -274,26 +269,14 @@ Extraversion = ['热情', '社交', '果断', '活跃', '冒险', '乐观']
 Agreeableness = ['信任', '奉献', '直率', '服从', '谦虚', '移情']
 Neuroticism = ['焦虑', '敌对', '神经质', '自我', '冲动', '脆弱']    # big five model words list
 
-def calc_persona_score(word, polarity_value, sentics, moodtags, semantics, wordsets):
-    # polarity_value, sentics, moodtags, semantics came form SenticNet and wordsets defined above
-    polarity_weight = 3
-    moodtags_weight = 0.3
-    semantics_weight = 0.1
-    total_num = len(wordsets) * (1 + polarity_weight + len(moodtags) * moodtags_weight + len(semantics) * semantics_weight) 
-    raw_score = 0
+def calc_persona_score(word, wordsets): # transfer all words to a vec then calc similiarties of each other.
+    sets_cap = len(wordsets)
+    word_vec = word_trasformer(word)
+    score = 0
     for w in wordsets:
-        word_sentics = cn_sn.sentics(w)
-        word_polarity = cn_sn.polarity_value(w)
-        rp_sim = (1 - (polarity_value - word_polarity)/2)
-        raw_score += rp_sim * polarity_weight
-        raw_score += simple_sentic_similarity(sentics, word_sentics)
-        for mt in moodtags:
-            mt_sentics = cn_sn.sentics(mt)
-            raw_score += simple_sentic_similarity(mt_sentics, word_sentics) * moodtags_weight
-        for sm in semantics:
-            sm_sentics = cn_sn.sentics(sm)
-            raw_score += simple_sentic_similarity(sm_sentics, word_sentics) * semantics_weight
-    score = raw_score / total_num
+        w_vec = word_trasformer(w)
+        score += word_vec_similarity(word_vec, w_vec)
+    score = score / sets_cap
     return score
 
 def to_big_five(word): # Word would be assigned [sentics, moodtags, semanticwords] etc attr, then parse this attr to 
@@ -392,13 +375,9 @@ def test():
     #names = list(count_big_names(jinyong_names, docs, 20))
     #mood_analysis('shediao', docs, names)
     word = '脆弱'
-    polarity_value = -0.531
-    sentics = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0.771, 'aptitude': -0.822}
-    moodtags = ['生气', '恶心']
-    semantics = ['弱', '容易被破解', '易碎', '微妙', '身体虚弱']
-    result = calc_persona_score(word, polarity_value, sentics, moodtags, semantics, Openness)
-    result2 = calc_persona_score(word, polarity_value, sentics, moodtags, semantics, Extraversion)
-    result3 = calc_persona_score(word, polarity_value, sentics, moodtags, semantics, Neuroticism)
+    result = calc_persona_score(word, Openness)
+    result2 = calc_persona_score(word, Extraversion)
+    result3 = calc_persona_score(word, Neuroticism)
     print(result, result2, result3)
 
 test()
