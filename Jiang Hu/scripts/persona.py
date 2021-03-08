@@ -215,11 +215,47 @@ def word_trasformer(word):  # return a {'polarity_value': x1, 'pleasantness': x2
         return result
     return result
 
+# Part I: Sentiment Analysis to determine A char's 「心」traits
+
+Openness = ['想象力', '审美', '情感', '创造力', '开放', '哲学', '价值']
+Conscientiousness = ['能力', '公正', '逻辑', '责任', '成就', '自律', '谨慎', '克制']
+Extraversion = ['热情', '社交', '果断', '活跃', '冒险', '乐观']
+Agreeableness = ['信任', '奉献', '直率', '服从', '谦虚', '移情']
+Neuroticism = ['焦虑', '敌对', '神经质', '自我', '冲动', '脆弱']    # big five model words list
+
+def calc_persona_score(word, wordsets): # transfer all words to a vec then calc similiarties of each other.
+    sets_cap = len(wordsets)
+    word_vec = word_trasformer(word)
+    score = 0
+    for w in wordsets:
+        w_vec = word_trasformer(w)
+        score += word_vec_similarity(word_vec, w_vec)
+    score = score / sets_cap
+    return score
+
+def ocean_horn(word): # Big Five Personalities Model, Aka O.C.E.A.N(Openness, Conscientiousness, Extraversion, 
+    #Agreebleness, Neuroticism), calculating from word.
+    big_five = {'Openness': 0, 'Consientiousness': 0, 'Extraversion': 0, 'Agreebleness': 0, 'Neuroticism': 0}
+    try:
+        big_five['Openness'] += calc_persona_score(word, Openness)
+        big_five['Consientiousness'] += calc_persona_score(word, Conscientiousness)
+        big_five['Extraversion'] += calc_persona_score(word, Extraversion)
+        big_five['Agreebleness'] += calc_persona_score(word, Agreeableness)
+        big_five['Neuroticism'] += calc_persona_score(word, Neuroticism)
+    except:
+        return big_five
+    return big_five
+
+def translate(cn_words):    # _TO_BE_UPDATED_
+    en_words = cn_words
+    return en_words
+
 def word_cloud(name, docs, pos_types, dep_types): # Calc polarity_value with token's related words.
     cloud = {}
     hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
     total = 1
     moodtags = {}
+    big_five = {'Openness': 0, 'Consientiousness': 0, 'Extraversion': 0, 'Agreebleness': 0, 'Neuroticism': 0}
     for doc in docs:
         for token in doc:
             if name in token.text:
@@ -241,8 +277,14 @@ def word_cloud(name, docs, pos_types, dep_types): # Calc polarity_value with tok
                                 cloud[leaf.text] += dis * pv
                                 for s in sentics:
                                     hourglass[s] += dis * sentics[s]
+                                raw_big_five = ocean_horn(leaf.text)
+                                for key in raw_big_five:
+                                    big_five[key] += raw_big_five[key] * dis
                             except:
                                 cloud[leaf.text] += dis * 0.01 # If no senticnet data, multipled by a minor 
+                                raw_big_five = ocean_horn(leaf.text)
+                                for key in raw_big_five:
+                                    big_five[key] += raw_big_five[key] * dis
                         else:
                             dis = calc_distance(token, leaf)
                             try:
@@ -257,63 +299,43 @@ def word_cloud(name, docs, pos_types, dep_types): # Calc polarity_value with tok
                                 cloud[leaf.text] += dis * pv
                                 for s in sentics:
                                     hourglass[s] += dis * sentics[s]
+                                raw_big_five = ocean_horn(leaf.text)
+                                for key in raw_big_five:
+                                    big_five[key] += raw_big_five[key] * dis
                             except:
                                 cloud[leaf.text] = dis * 0.01 # If no senticnet data, multipled by a minor
-    return [cloud, hourglass, total, moodtags]
+                                raw_big_five = ocean_horn(leaf.text)
+                                for key in raw_big_five:
+                                    big_five[key] += raw_big_five[key] * dis
+    return [cloud, hourglass, total, moodtags, big_five]
 
-# Part I: Sentiment Analysis to determine A char's 「心」traits
-
-Openness = ['想象力', '审美', '情感', '创造力', '开放', '哲学', '价值']
-Conscientiousness = ['能力', '公正', '逻辑', '责任', '成就', '自律', '谨慎', '克制']
-Extraversion = ['热情', '社交', '果断', '活跃', '冒险', '乐观']
-Agreeableness = ['信任', '奉献', '直率', '服从', '谦虚', '移情']
-Neuroticism = ['焦虑', '敌对', '神经质', '自我', '冲动', '脆弱']    # big five model words list
-
-def calc_persona_score(word, wordsets): # transfer all words to a vec then calc similiarties of each other.
-    sets_cap = len(wordsets)
-    word_vec = word_trasformer(word)
-    score = 0
-    for w in wordsets:
-        w_vec = word_trasformer(w)
-        score += word_vec_similarity(word_vec, w_vec)
-    score = score / sets_cap
-    return score
-
-def to_big_five(word): # Word would be assigned [sentics, moodtags, semanticwords] etc attr, then parse this attr to 
-    # big five personal traits
-    try:
-        sentics = cn_sn.sentics(word)
-        oldtags = cn_sn.moodtags(word)
-        moodtags = []
-        for ot in oldtags:
-            moodtags.append(ot.lstrip('#'))
-    except:
-        sentics = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
-        moodtags = []
-    #_TO_BE_CONTINUE
-
-def translate(cn_words):    # _TO_BE_UPDATED_
-    en_words = cn_words
-    return en_words
-
-def hourglass_analysis(book_name, docs, names):   # docs shoule be the nlp parsing result of read_chapters(book)
+def personality_traits_analysis(book_name, docs, names, model_type):   # docs shoule be the nlp 
+    # parsing result of read_chapters(book)
     name_en = translate(names)
-    hourglass_with_names = {}
+    persoanlity_traits_with_names = {}
     for name in names:
-        result = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
         wc_with_names = word_cloud(name, docs, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
-        result = wc_with_names[1]
         sent_count = wc_with_names[2]
-        for r in result:
-            result[r] = result[r] / sent_count
-        hourglass_with_names[name] = result
+        if model_type == 'hourglass':
+            result = wc_with_names[1]
+            for r in result:
+                result[r] = result[r] / sent_count
+            persoanlity_traits_with_names[name] = result
+        elif model_type == 'big_five':
+            result = wc_with_names[4]
+            for r in result:
+                result[r] = result[r] / sent_count
+            persoanlity_traits_with_names[name] = result
     with open('%s_char_emotion.txt' %(book_name), 'w+') as file:
-        file.write('Name Pleasantness Attention Sensitivity Aptitude\n')
-        for name in names:
-            file.write("%s " %(name))
-            for key in list(hourglass_with_names[name]):
-                file.write('%.4f ' %(hourglass_with_names[name][key]) + ' ')
-            file.write('\n')
+        if model_type == 'hourglass':
+            file.write('Name Pleasantness Attention Sensitivity Aptitude\n')
+        elif model_type == 'big_five':
+            file.write('Openness Consientiousness Extraversion Agreebleness Neuroticism\n')
+            for name in names:
+                file.write("%s " %(name))
+                for key in list(persoanlity_traits_with_names[name]):
+                    file.write('%.4f ' %(persoanlity_traits_with_names[name][key]) + ' ')
+                file.write('\n')
 
 def mood_analysis(book_name, docs, names):
     mood_with_names = {}
@@ -368,16 +390,11 @@ def eye_tracking(doc, name_set):  # return series like 'PERSON'(supposed to be n
 # Test units here.
 
 def test(): 
-    #txts = read_chapters(shediao)
-    #docs = []
-    #for txt in txts:
-    #    docs.append(nlp(txt))
-    #names = list(count_big_names(jinyong_names, docs, 20))
-    #mood_analysis('shediao', docs, names)
-    word = '脆弱'
-    result = calc_persona_score(word, Openness)
-    result2 = calc_persona_score(word, Extraversion)
-    result3 = calc_persona_score(word, Neuroticism)
-    print(result, result2, result3)
+    txts = read_chapters(yitian)
+    docs = []
+    for txt in txts:
+        docs.append(nlp(txt))
+    names = list(count_big_names(jinyong_names, docs, 20))
+    personality_traits_analysis('yitian', docs, names, 'big_five')
 
 test()
