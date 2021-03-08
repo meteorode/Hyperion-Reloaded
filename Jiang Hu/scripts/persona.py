@@ -176,7 +176,7 @@ def calc_distance(token, leaf): # Assert leaf is another token in the same sente
 # Words' Sentic Value/Similarity calculation
 def has_sentic(word):   # Check whether in SenticNet
     try:
-        who_cares = cn_sn(word)
+        who_cares = cn_sn.concept(word)
         return True
     except:
         return False
@@ -290,7 +290,7 @@ def word_cloud(word, docs, pos_types, dep_types): # return a dict like this {'re
 def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by model_type
     big_five = {'Openness': 0, 'Consientiousness': 0, 'Extraversion': 0, 'Agreebleness': 0, 'Neuroticism': 0}
     hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
-    total_weights = 0    
+    total_weights = 0 
     if model_type == 'big_five':
         for key in cloud:   # assert key is a word and cloud is a dict
             temp_result = ocean_horn(key)
@@ -298,6 +298,7 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
                 total_weights += cloud[key]
                 for factor in big_five:
                     big_five[factor] += cloud[key] * temp_result[factor]
+        total_weights = max(total_weights, 1)
         for factor in big_five:
             big_five[factor] = big_five[factor] / total_weights
         return big_five
@@ -308,6 +309,7 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
                 for factor in hourglass:
                     total_weights += cloud[key]
                     hourglass[factor] += cloud[key] * temp_result[factor]
+        total_weights = max(total_weights, 1)
         for factor in hourglass:
             hourglass[factor] = hourglass[factor] / total_weights
         return hourglass
