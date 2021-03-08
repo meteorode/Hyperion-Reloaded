@@ -174,6 +174,13 @@ def calc_distance(token, leaf): # Assert leaf is another token in the same sente
     return dis
 
 # Words' Sentic Value/Similarity calculation
+def has_sentic(word):   # Check whether in SenticNet
+    try:
+        who_cares = cn_sn(word)
+        return True
+    except:
+        return False
+
 def word_vec_similarity(vec1, vec2):    # vec1 and vec2 should be a dict
     v1_values = list(vec1.values())
     v2_values = list(vec2.values())
@@ -254,7 +261,7 @@ def hourglass_light(word): # Raw Hourglass data calculating from word.
 
 def ocean_horn(word): # Big Five Personalities Model, Aka O.C.E.A.N(Openness, Conscientiousness, Extraversion, 
     #Agreebleness, Neuroticism), calculating from word.
-    big_five = {'Openness': 0.5, 'Consientiousness': 0.5, 'Extraversion': 0.5, 'Agreebleness': 0.5, 'Neuroticism': 0.5}
+    big_five = {'Openness': 0, 'Consientiousness': 0, 'Extraversion': 0, 'Agreebleness': 0, 'Neuroticism': 0}   # Should drop all zero datas.
     try:
         big_five['Openness'] = calc_persona_score(word, Openness)
         big_five['Consientiousness'] = calc_persona_score(word, Conscientiousness)
@@ -283,17 +290,27 @@ def word_cloud(word, docs, pos_types, dep_types): # return a dict like this {'re
 def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by model_type
     big_five = {'Openness': 0, 'Consientiousness': 0, 'Extraversion': 0, 'Agreebleness': 0, 'Neuroticism': 0}
     hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
-    total_weights = sum(list(cloud.values()))    
+    total_weights = 0    
     if model_type == 'big_five':
         for key in cloud:   # assert key is a word and cloud is a dict
-            for factor in big_five:
-                big_five[factor] += cloud[key] * ocean_horn(key)[factor] / total_weights
+            temp_result = ocean_horn(key)
+            if has_sentic(key) == True:
+                total_weights += cloud[key]
+                for factor in big_five:
+                    big_five[factor] += cloud[key] * temp_result[factor]
+        for factor in big_five:
+            big_five[factor] = big_five[factor] / total_weights
         return big_five
     elif model_type == 'hourglass':
         for key in cloud:
-            for factor in hourglass:
-                hourglass[factor] += cloud[key] * hourglass_light(key)[factor] / total_weights
-        return hourglass_light
+            temp_result = hourglass_light(key)
+            if has_sentic(key) == True:
+                for factor in hourglass:
+                    total_weights += cloud[key]
+                    hourglass[factor] += cloud[key] * temp_result[factor]
+        for factor in hourglass:
+            hourglass[factor] = hourglass[factor] / total_weights
+        return hourglass
 
 def personality_traits_analysis(book_name, docs, names, model_type):   # docs shoule be the nlp 
     # parsing result of read_chapters(book)
