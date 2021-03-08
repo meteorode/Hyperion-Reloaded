@@ -11,6 +11,7 @@ from senticnet.senticnet import SenticNet
 from senticnet.babelsenticnet import BabelSenticNet
 import inspect
 import math
+import numpy as np
 
 spacy.prefer_gpu()  # Using GPU to run programm
 
@@ -182,9 +183,15 @@ def word_vec_similarity(vec1, vec2):    # vec1 and vec2 should be a dict
     max = [1.0] * v1_len
     min = [-1.0] * v1_len
     dis = math.dist(v1_values, v2_values) / math.dist(max, min)
-    return (1 - dis)
+    numerator = np.dot(v1_values, v2_values)
+    v1_np = np.array(v1_values)
+    v2_np = np.array(v2_values)
+    denominator = math.sqrt(v1_np.dot(v1_np)) * math.sqrt(v2_np.dot(v2_np))
+    cos_similarity = numerator / denominator
+    similarity = (1 - dis + cos_similarity) / 2
+    return similarity
 
-def word_trasformer(word):  # return a {'polarity_value': x1, 'pleasantness': x2, ...}
+def word_transformer(word):  # return a {'polarity_value': x1, 'pleasantness': x2, ...}
     result = {'polarity_value': 0, 'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
     moodtags_weight = 0.3
     semantics_weight = 0.1
@@ -225,10 +232,10 @@ Neuroticism = ['焦虑', '敌对', '神经质', '自我', '冲动', '脆弱']   
 
 def calc_persona_score(word, wordsets): # transfer all words to a vec then calc similiarties of each other.
     sets_cap = len(wordsets)
-    word_vec = word_trasformer(word)
+    word_vec = word_transformer(word)
     score = 0
     for w in wordsets:
-        w_vec = word_trasformer(w)
+        w_vec = word_transformer(w)
         score += word_vec_similarity(word_vec, w_vec)
     score = score / sets_cap
     return score
@@ -390,11 +397,11 @@ def eye_tracking(doc, name_set):  # return series like 'PERSON'(supposed to be n
 # Test units here.
 
 def test(): 
-    txts = read_chapters(yitian)
+    txts = read_chapters(shediao)
     docs = []
     for txt in txts:
         docs.append(nlp(txt))
     names = list(count_big_names(jinyong_names, docs, 20))
-    personality_traits_analysis('yitian', docs, names, 'big_five')
+    personality_traits_analysis('shediao', docs, names, 'big_five')
 
 test()
