@@ -287,12 +287,12 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
     if model_type == 'big_five':
         for key in cloud:   # assert key is a word and cloud is a dict
             for factor in big_five:
-                big_five[factor] += cloud[key] * ocean_horn(key) / total_weights
+                big_five[factor] += cloud[key] * ocean_horn(key)[factor] / total_weights
         return big_five
     elif model_type == 'hourglass':
         for key in cloud:
             for factor in hourglass:
-                hourglass[factor] += cloud[key] * hourglass_light(key) / total_weights
+                hourglass[factor] += cloud[key] * hourglass_light(key)[factor] / total_weights
         return hourglass_light
 
 def personality_traits_analysis(book_name, docs, names, model_type):   # docs shoule be the nlp 
