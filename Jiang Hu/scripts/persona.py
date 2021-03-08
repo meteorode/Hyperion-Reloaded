@@ -161,15 +161,15 @@ def unify_name(name, name_set): # set name to real name in (name_set)
     return name  
 
 def calc_distance(token, leaf): # Assert leaf is another token in the same sentence with token, parse the tree then calc the distance of [token, leaf]
-    dis = 0.2 # 3 produces everything!
+    dis = 0.3 # 3 produces everything!
     sent = token.sent
     assert (leaf in sent) == True
     if (leaf == token):
         dis = 0.0
     elif (leaf in token.children or leaf == token.head):
-        dis = 3.0
-    elif (leaf in token.subtree or leaf in token.head.children):
         dis = 1.0
+    elif (leaf in token.subtree or leaf in token.head.children):
+        dis = 0.7
 
     return dis
 
@@ -243,15 +243,24 @@ def calc_persona_score(word, wordsets): # transfer all words to a vec then calc 
     score = score / sets_cap
     return score
 
+def hourglass_light(word): # Raw Hourglass data calculating from word.
+    hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
+    try:
+        for key in hourglass:
+            hourglass[key] = cn_sn.sentics(word)[key]
+    except:
+        return hourglass
+    return hourglass
+
 def ocean_horn(word): # Big Five Personalities Model, Aka O.C.E.A.N(Openness, Conscientiousness, Extraversion, 
     #Agreebleness, Neuroticism), calculating from word.
     big_five = {'Openness': 0.5, 'Consientiousness': 0.5, 'Extraversion': 0.5, 'Agreebleness': 0.5, 'Neuroticism': 0.5}
     try:
-        big_five['Openness'] += calc_persona_score(word, Openness)
-        big_five['Consientiousness'] += calc_persona_score(word, Conscientiousness)
-        big_five['Extraversion'] += calc_persona_score(word, Extraversion)
-        big_five['Agreebleness'] += calc_persona_score(word, Agreeableness)
-        big_five['Neuroticism'] += calc_persona_score(word, Neuroticism)
+        big_five['Openness'] = calc_persona_score(word, Openness)
+        big_five['Consientiousness'] = calc_persona_score(word, Conscientiousness)
+        big_five['Extraversion'] = calc_persona_score(word, Extraversion)
+        big_five['Agreebleness'] = calc_persona_score(word, Agreeableness)
+        big_five['Neuroticism'] = calc_persona_score(word, Neuroticism)
     except:
         return big_five
     return big_five
@@ -260,64 +269,31 @@ def translate(cn_words):    # _TO_BE_UPDATED_
     en_words = cn_words
     return en_words
 
-def word_cloud(name, docs, pos_types, dep_types): # Calc polarity_value with token's related words.
+def word_cloud(word, docs, pos_types, dep_types): # return a dict like this {'related_word_1': weight, ...}
     cloud = {}
-    hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
-    total = 1
-    moodtags = {}
-    big_five = {'Openness': 0, 'Consientiousness': 0, 'Extraversion': 0, 'Agreebleness': 0, 'Neuroticism': 0}
     for doc in docs:
         for token in doc:
-            if name in token.text:
+            if word in token.text:
                 for leaf in token.sent:
-                    #print (leaf.text, calc_distance(token, leaf))
+                    dis = calc_distance(token, leaf)
                     if leaf.pos_ in pos_types or leaf.dep_ in dep_types:
-                        total += 1
-                        if leaf.text in cloud:
-                            dis = calc_distance(token, leaf)
-                            try:
-                                mt = cn_sn.moodtags(leaf.text)
-                                pv = cn_sn.polarity_value(leaf.text)
-                                sentics = cn_sn.sentics(leaf.text)
-                                nmt = []
-                                for m in mt:
-                                    nmt.append(m.lstrip('#'))
-                                for nm in nmt:
-                                    dict_modify(moodtags, nm, dis, dis)
-                                cloud[leaf.text] += dis * pv
-                                for s in sentics:
-                                    hourglass[s] += dis * sentics[s]
-                                raw_big_five = ocean_horn(leaf.text)
-                                for key in raw_big_five:
-                                    big_five[key] += raw_big_five[key] * dis
-                            except:
-                                cloud[leaf.text] += dis * 0.01 # If no senticnet data, multipled by a minor 
-                                raw_big_five = ocean_horn(leaf.text)
-                                for key in raw_big_five:
-                                    big_five[key] += raw_big_five[key] * dis
-                        else:
-                            dis = calc_distance(token, leaf)
-                            try:
-                                mt = cn_sn.moodtags(leaf.text)
-                                pv = cn_sn.polarity_value(leaf.text)
-                                sentics = cn_sn.sentics(leaf.text)
-                                nmt = []
-                                for m in mt:
-                                    nmt.append(m.lstrip('#'))
-                                for nm in nmt:
-                                    dict_modify(moodtags, nm, dis, dis)
-                                cloud[leaf.text] += dis * pv
-                                for s in sentics:
-                                    hourglass[s] += dis * sentics[s]
-                                raw_big_five = ocean_horn(leaf.text)
-                                for key in raw_big_five:
-                                    big_five[key] += raw_big_five[key] * dis
-                            except:
-                                cloud[leaf.text] = dis * 0.01 # If no senticnet data, multipled by a minor
-                                raw_big_five = ocean_horn(leaf.text)
-                                for key in raw_big_five:
-                                    big_five[key] += raw_big_five[key] * dis
-    return [cloud, hourglass, total, moodtags, big_five]
+                        dict_modify(cloud, leaf.text, dis, dis)
+    return cloud
+
+def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by model_type
+    big_five = {'Openness': 0, 'Consientiousness': 0, 'Extraversion': 0, 'Agreebleness': 0, 'Neuroticism': 0}
+    hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
+    total_weights = sum(list(cloud.values()))    
+    if model_type == 'big_five':
+        for key in cloud:   # assert key is a word and cloud is a dict
+            for factor in big_five:
+                big_five[factor] += cloud[key] * ocean_horn(key) / total_weights
+        return big_five
+    elif model_type == 'hourglass':
+        for key in cloud:
+            for factor in hourglass:
+                hourglass[factor] += cloud[key] * hourglass_light(key) / total_weights
+        return hourglass_light
 
 def personality_traits_analysis(book_name, docs, names, model_type):   # docs shoule be the nlp 
     # parsing result of read_chapters(book)
@@ -325,17 +301,8 @@ def personality_traits_analysis(book_name, docs, names, model_type):   # docs sh
     persoanlity_traits_with_names = {}
     for name in names:
         wc_with_names = word_cloud(name, docs, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
-        sent_count = wc_with_names[2]
-        if model_type == 'hourglass':
-            result = wc_with_names[1]
-            for r in result:
-                result[r] = result[r] / sent_count
-            persoanlity_traits_with_names[name] = result
-        elif model_type == 'big_five':
-            result = wc_with_names[4]
-            for r in result:
-                result[r] = result[r] / sent_count
-            persoanlity_traits_with_names[name] = result
+        result = Est_Sularus_oth_Mithas(wc_with_names, model_type)
+        persoanlity_traits_with_names[name] = result
     with open('%s_char_emotion.txt' %(book_name), 'w+') as file:
         if model_type == 'hourglass':
             file.write('Name Pleasantness Attention Sensitivity Aptitude\n')
@@ -345,31 +312,7 @@ def personality_traits_analysis(book_name, docs, names, model_type):   # docs sh
                 file.write("%s " %(name))
                 for key in list(persoanlity_traits_with_names[name]):
                     file.write('%.4f ' %(persoanlity_traits_with_names[name][key]) + ' ')
-                file.write('\n')
-
-def mood_analysis(book_name, docs, names):
-    mood_with_names = {}
-    for name in names:
-        mood_result = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
-        wc_with_name = word_cloud(name, docs, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
-        name_with_moodtags = wc_with_name[3]
-        total_sent = wc_with_name[2]
-        for nwm in name_with_moodtags:
-            nwm_hourglass = cn_sn.sentics(nwm)
-            for nh in nwm_hourglass:
-                nwm_hourglass[nh] *= name_with_moodtags[nwm]
-            for mr in mood_result:
-                mood_result[mr] += nwm_hourglass[mr]
-        for mr in mood_result:
-            mood_result[mr] = mood_result[mr] / total_sent
-        mood_with_names[name] = mood_result
-    with open('%s_mood_analysis_result.txt' %(book_name), 'w+') as file:
-        file.write('Name Pleasantness Attention Sensitivity Aptitude\n')
-        for name in names:
-            file.write("%s " %(name))
-            for key in list(mood_with_names[name]):
-                file.write('%.4f ' %(mood_with_names[name][key]) + ' ')
-            file.write('\n')   
+                file.write('\n')  
 
 # Part II: Events and Choices slicing
 
