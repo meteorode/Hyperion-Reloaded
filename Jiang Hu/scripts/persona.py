@@ -269,10 +269,10 @@ def word_cloud(name, docs, pos_types, dep_types): # Calc polarity_value with tok
     for doc in docs:
         for token in doc:
             if name in token.text:
-                total += 1
                 for leaf in token.sent:
                     #print (leaf.text, calc_distance(token, leaf))
                     if leaf.pos_ in pos_types or leaf.dep_ in dep_types:
+                        total += 1
                         if leaf.text in cloud:
                             dis = calc_distance(token, leaf)
                             try:
