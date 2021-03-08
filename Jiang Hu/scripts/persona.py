@@ -187,7 +187,10 @@ def word_vec_similarity(vec1, vec2):    # vec1 and vec2 should be a dict
     v1_np = np.array(v1_values)
     v2_np = np.array(v2_values)
     denominator = math.sqrt(v1_np.dot(v1_np)) * math.sqrt(v2_np.dot(v2_np))
-    cos_similarity = numerator / denominator
+    if (denominator > 0):
+        cos_similarity = numerator / denominator
+    else:
+        cos_similarity = 1.0
     similarity = (1 - dis + cos_similarity) / 2
     return similarity
 
@@ -242,7 +245,7 @@ def calc_persona_score(word, wordsets): # transfer all words to a vec then calc 
 
 def ocean_horn(word): # Big Five Personalities Model, Aka O.C.E.A.N(Openness, Conscientiousness, Extraversion, 
     #Agreebleness, Neuroticism), calculating from word.
-    big_five = {'Openness': 0, 'Consientiousness': 0, 'Extraversion': 0, 'Agreebleness': 0, 'Neuroticism': 0}
+    big_five = {'Openness': 0.5, 'Consientiousness': 0.5, 'Extraversion': 0.5, 'Agreebleness': 0.5, 'Neuroticism': 0.5}
     try:
         big_five['Openness'] += calc_persona_score(word, Openness)
         big_five['Consientiousness'] += calc_persona_score(word, Conscientiousness)
@@ -337,7 +340,7 @@ def personality_traits_analysis(book_name, docs, names, model_type):   # docs sh
         if model_type == 'hourglass':
             file.write('Name Pleasantness Attention Sensitivity Aptitude\n')
         elif model_type == 'big_five':
-            file.write('Openness Consientiousness Extraversion Agreebleness Neuroticism\n')
+            file.write('Name Openness Consientiousness Extraversion Agreebleness Neuroticism\n')
             for name in names:
                 file.write("%s " %(name))
                 for key in list(persoanlity_traits_with_names[name]):
