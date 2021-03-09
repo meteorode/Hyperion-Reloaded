@@ -327,11 +327,11 @@ def personality_traits_analysis(book_name, docs, names, model_type):   # docs sh
             file.write('Name Pleasantness Attention Sensitivity Aptitude\n')
         elif model_type == 'big_five':
             file.write('Name Openness Consientiousness Extraversion Agreebleness Neuroticism\n')
-            for name in names:
-                file.write("%s " %(name))
-                for key in list(persoanlity_traits_with_names[name]):
-                    file.write('%.4f ' %(persoanlity_traits_with_names[name][key]) + ' ')
-                file.write('\n')  
+        for name in names:
+            file.write("%s " %(name))
+            for key in list(persoanlity_traits_with_names[name]):
+                file.write('%.4f ' %(persoanlity_traits_with_names[name][key]) + ' ')
+            file.write('\n')  
 
 # Part II: Events and Choices slicing
 
@@ -367,6 +367,6 @@ def test():
     for txt in txts:
         docs.append(nlp(txt))
     names = list(count_big_names(jinyong_names, docs, 20))
-    personality_traits_analysis('shediao', docs, names, 'big_five')
+    personality_traits_analysis('shediao', docs, names, 'hourglass')
 
 test()
