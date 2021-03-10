@@ -15,6 +15,8 @@ import inspect
 import math
 import numpy as np
 import persona
+from sentence_transformers import SentenceTransformer, util
+import torch
 
 # spaCy init
 
@@ -27,6 +29,8 @@ sn = SenticNet()
 cn_sn = BabelSenticNet('cn')    # Use SenticNet to analysis.
 
 p = Path('.')   # current Path
+
+embedder = SentenceTransformer('./models/distiluse-base-multilingual-cased')
 
 # Define heroes
 
@@ -48,14 +52,31 @@ propp_models = {'Absentation': 'Someone goes missing', 'Interdiction': 'Hero is 
                 'Task': 'Difficult task proposed to the hero', 'Solution': 'Task is resolved', 'Recognition': 'Hero is recognised', 'Exposure': 'False hero is exposed',
                 'Transfiguration': 'Hero is given a new appearance', 'Punishment': 'Villain is punished', 'Wedding': 'Hero marries and ascends the throne'}
 
+def semantic_search(corpus, queries, result_num): # # Find the closest {result_num} sentences of the corpus for each query sentence based on cosine similarity
+    corpus_embeddings = embedder.encode(corpus, convert_to_tensor = True)
+    top_k = min(result_num, len(corpus))
+    for query in queries:
+        query_embedding = embedder.encode(query, convert_to_tensor=True)
+
+    # We use cosine-similarity and torch.topk to find the highest 5 scores
+    cos_scores = util.pytorch_cos_sim(query_embedding, corpus_embeddings)[0]
+    top_results = torch.topk(cos_scores, k=top_k)
+
+    print("\n\n======================\n\n")
+    print("Query:", query)
+    print("\nTop %d most similar sentences in corpus:" %(top_k))
+
+    for score, idx in zip(top_results[0], top_results[1]):
+        print(corpus[idx], "(Score: {:.4f})".format(score))
+
 # Test Unit
 def test():
-    for model_name in propp_models:
-        model_content = propp_models[model_name]
-        doc = nlp(model_content)
-        for token in doc:
-            print(token.text, token.dep_, token.ent_type_, token.pos_)
-            if persona.has_sentic(token.text):
-                print(persona.word_transformer(token.text))
+    txts = persona.read_chapters(persona.shediao)
+    docs = []
+    for txt in txts:
+        docs.append(nlp(txt))
+    doc_milestone = persona.find_sents_with_specs(docs, ['LOC', 'GPE', 'EVENT'])[1]
+    queries = list(propp_models.values())
+    semantic_search(doc_milestone, queries, 10)
 
 test()

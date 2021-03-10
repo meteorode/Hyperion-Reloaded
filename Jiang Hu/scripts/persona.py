@@ -134,15 +134,16 @@ def count_attrs(doc, attr_type):
     #print("top entities{}".format(sorted(entities.items(), key=lambda kv: kv[1], reverse=True)[:30]))
     return entities
 
-def find_sents_with_specs(doc, spec_names):
+def find_sents_with_specs(docs, spec_names):
     sents = {}
     doc_slice = []
-    for token in doc:
-        if token.ent_type_ in spec_names:
-            if token.sent not in doc_slice:
-                doc_slice.append(token.sent)
-            token_description = token.text + ': ' + token.ent_type_
-            dict_modify(sents, token.sent.text, token_description, token_description)
+    for doc in docs:
+        for token in doc:
+            if token.ent_type_ in spec_names:
+                if token.sent not in doc_slice:
+                    doc_slice.append(token.sent)
+                token_description = token.text + ': ' + token.ent_type_
+                dict_modify(sents, token.sent.text, token_description, token_description)
     return [sents, doc_slice]
 
 def count_words_with_specs(doc, spec_type, spec_name):
@@ -223,15 +224,17 @@ def en_word_transformer(word): # like cn version, but sentic differs
             moodtags.append(ot.lstrip('#'))
         semantics = sn.semantics(word)
         for mt in moodtags:
-            result['polarity_value'] += moodtags_weight * float(sn.polarity_value(mt))
-            mt_sentics = sn.sentics(mt)
-            for key in mt_sentics:
-                result[key] += float(mt_sentics[key]) * moodtags_weight
+            if (has_en_sentic(mt)):
+                result['polarity_value'] += moodtags_weight * float(sn.polarity_value(mt))
+                mt_sentics = sn.sentics(mt)
+                for key in mt_sentics:
+                    result[key] += float(mt_sentics[key]) * moodtags_weight
         for sm in semantics:
-            result['polarity_value'] += semantics_weight * float(sn.polarity_value(sm))
-            sm_sentics = sn.sentics(sm)
-            for key in sm_sentics:
-                result[key] += float(sm_sentics[key]) * semantics_weight
+            if (has_en_sentic(sm)):
+                result['polarity_value'] += semantics_weight * float(sn.polarity_value(sm))
+                sm_sentics = sn.sentics(sm)
+                for key in sm_sentics:
+                    result[key] += float(sm_sentics[key]) * semantics_weight
         total_len = 1 + len(moodtags) * moodtags_weight + len(semantics) * semantics_weight
         for key in result:
             result[key] = result[key] / total_len
