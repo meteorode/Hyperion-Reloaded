@@ -140,8 +140,8 @@ def find_sents_with_specs(docs, spec_names):
     for doc in docs:
         for token in doc:
             if token.ent_type_ in spec_names:
-                if token.sent not in doc_slice:
-                    doc_slice.append(token.sent)
+                if token.sent.text not in doc_slice:
+                    doc_slice.append(token.sent.text)
                 token_description = token.text + ': ' + token.ent_type_
                 dict_modify(sents, token.sent.text, token_description, token_description)
     return [sents, doc_slice]
