@@ -134,14 +134,26 @@ def count_attrs(doc, attr_type):
     #print("top entities{}".format(sorted(entities.items(), key=lambda kv: kv[1], reverse=True)[:30]))
     return entities
 
+def sent_clustering(sent, doc, neighbor_num):   # return {neighbor_num} sents before and after in doc
+    assert(sent in doc.sents) == True
+    sents = list(doc.sents)
+    sent_index = sents.index(sent)
+    lower = max(0, sent_index-neighbor_num)
+    upper = min(len(sents)-1, sent_index+neighbor_num)
+    result = ''
+    for i in range(lower, upper):
+        result += sents[i].text
+    return result
+
 def find_sents_with_specs(docs, spec_names):
     sents = {}
     doc_slice = []
     for doc in docs:
         for token in doc:
             if token.ent_type_ in spec_names:
-                if token.sent.text not in doc_slice:
-                    doc_slice.append(token.sent.text)
+                token_slice = sent_clustering(token.sent, doc, 5)
+                if token_slice not in doc_slice:
+                    doc_slice.append(token_slice)
                 token_description = token.text + ': ' + token.ent_type_
                 dict_modify(sents, token.sent.text, token_description, token_description)
     return [sents, doc_slice]

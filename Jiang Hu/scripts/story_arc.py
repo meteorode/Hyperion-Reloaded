@@ -52,6 +52,18 @@ propp_models = {'Absentation': 'Someone goes missing', 'Interdiction': 'Hero is 
                 'Task': 'Difficult task proposed to the hero', 'Solution': 'Task is resolved', 'Recognition': 'Hero is recognised', 'Exposure': 'False hero is exposed',
                 'Transfiguration': 'Hero is given a new appearance', 'Punishment': 'Villain is punished', 'Wedding': 'Hero marries and ascends the throne'}
 
+def read_propp_details(filename):   # read detaied description from file
+    details = {}
+    with open(filename, 'r') as file:
+        for line in file:
+            if line != '':
+                dict_pairs = line.split('|')
+                assert (len(dict_pairs) = 2) == True
+                key = dict_pairs[0]
+                value = dict_pairs[1]
+                details[key] = value
+    return details
+
 def semantic_search(corpus, queries, result_num): # # Find the closest {result_num} sentences of the corpus for each query sentence based on cosine similarity
     corpus_embeddings = embedder.encode(corpus, convert_to_tensor = True)
     top_k = min(result_num, len(corpus))
