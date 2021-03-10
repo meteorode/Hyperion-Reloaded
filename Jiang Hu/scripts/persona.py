@@ -174,18 +174,19 @@ def calc_distance(token, leaf): # Assert leaf is another token in the same sente
     return dis
 
 # Words' Sentic Value/Similarity calculation
-def has_sentic(word):   # Check whether in SenticNet
+def has_cn_sentic(word):   # Check whether in SenticNet
     try:
         who_cares = cn_sn.concept(word)
-        print(who_cares)
         return True
     except:
-        try:
-            thou_cares = sn.concept(word)
-            print(thou_cares)
-            return True
-        except:
-            return False
+        return False
+
+def has_en_sentic(word): # En version
+    try:
+        who_cares = sn.concept(word)
+        return True
+    except:
+        return False
 
 def word_vec_similarity(vec1, vec2):    # vec1 and vec2 should be a dict
     v1_values = list(vec1.values())
@@ -206,6 +207,35 @@ def word_vec_similarity(vec1, vec2):    # vec1 and vec2 should be a dict
         cos_similarity = 1.0
     similarity = (1 - dis + cos_similarity) / 2
     return similarity
+
+def en_word_transformer(word): # like cn version, but sentic differs
+    result = {'polarity_value': 0.0, 'introspection': 0.0, 'temper': 0.0, 'attitude': 0.0, 'sensitivity': 0.0}
+    moodtags_weight = 0.3
+    semantics_weight = 0.1
+    if has_en_sentic(word):
+        result['polarity_value'] = float(sn.polarity_value(word))
+        w_sentics = sn.sentics(word)
+        for key in w_sentics:
+            result[key] += float(w_sentics[key])
+        oldtags = sn.moodtags(word)
+        moodtags = []
+        for ot in oldtags:
+            moodtags.append(ot.lstrip('#'))
+        semantics = sn.semantics(word)
+        for mt in moodtags:
+            result['polarity_value'] += moodtags_weight * float(sn.polarity_value(mt))
+            mt_sentics = sn.sentics(mt)
+            for key in mt_sentics:
+                result[key] += float(mt_sentics[key]) * moodtags_weight
+        for sm in semantics:
+            result['polarity_value'] += semantics_weight * float(sn.polarity_value(sm))
+            sm_sentics = sn.sentics(sm)
+            for key in sm_sentics:
+                result[key] += float(sm_sentics[key]) * semantics_weight
+        total_len = 1 + len(moodtags) * moodtags_weight + len(semantics) * semantics_weight
+        for key in result:
+            result[key] = result[key] / total_len
+    return result
 
 def word_transformer(word):  # return a {'polarity_value': x1, 'pleasantness': x2, ...}
     result = {'polarity_value': 0, 'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
@@ -300,7 +330,7 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
     if model_type == 'big_five':
         for key in cloud:   # assert key is a word and cloud is a dict
             temp_result = ocean_horn(key)
-            if has_sentic(key) == True:
+            if has_cn_sentic(key) == True:
                 total_weights += cloud[key]
                 for factor in big_five:
                     big_five[factor] += cloud[key] * temp_result[factor]
@@ -311,7 +341,7 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
     elif model_type == 'hourglass':
         for key in cloud:
             temp_result = hourglass_light(key)
-            if has_sentic(key) == True:
+            if has_cn_sentic(key) == True:
                 for factor in hourglass:
                     total_weights += cloud[key]
                     hourglass[factor] += cloud[key] * temp_result[factor]
