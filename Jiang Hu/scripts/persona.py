@@ -177,9 +177,15 @@ def calc_distance(token, leaf): # Assert leaf is another token in the same sente
 def has_sentic(word):   # Check whether in SenticNet
     try:
         who_cares = cn_sn.concept(word)
+        print(who_cares)
         return True
     except:
-        return False
+        try:
+            thou_cares = sn.concept(word)
+            print(thou_cares)
+            return True
+        except:
+            return False
 
 def word_vec_similarity(vec1, vec2):    # vec1 and vec2 should be a dict
     v1_values = list(vec1.values())
