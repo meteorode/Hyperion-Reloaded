@@ -57,17 +57,16 @@ def semantic_search(corpus, queries, result_num): # # Find the closest {result_n
     top_k = min(result_num, len(corpus))
     for query in queries:
         query_embedding = embedder.encode(query, convert_to_tensor=True)
+        # We use cosine-similarity and torch.topk to find the highest 5 scores
+        cos_scores = util.pytorch_cos_sim(query_embedding, corpus_embeddings)[0]
+        top_results = torch.topk(cos_scores, k=top_k)
 
-    # We use cosine-similarity and torch.topk to find the highest 5 scores
-    cos_scores = util.pytorch_cos_sim(query_embedding, corpus_embeddings)[0]
-    top_results = torch.topk(cos_scores, k=top_k)
+        print("\n\n======================\n\n")
+        print("Query:", query)
+        print("\nTop %d most similar sentences in corpus:" %(top_k))
 
-    print("\n\n======================\n\n")
-    print("Query:", query)
-    print("\nTop %d most similar sentences in corpus:" %(top_k))
-
-    for score, idx in zip(top_results[0], top_results[1]):
-        print(corpus[idx], "(Score: {:.4f})".format(score))
+        for score, idx in zip(top_results[0], top_results[1]):
+            print(corpus[idx], "(Score: {:.4f})".format(score))
 
 # Test Unit
 def test():
@@ -75,7 +74,7 @@ def test():
     docs = []
     for txt in txts:
         docs.append(nlp(txt))
-    doc_milestone = persona.find_sents_with_specs(docs, ['LOC', 'GPE', 'EVENT'])[1]
+    doc_milestone = persona.find_sents_with_specs(docs, ['PERSON', 'LOC', 'GPE', 'EVENT'])[1]
     queries = list(propp_models.values())
     semantic_search(doc_milestone, queries, 10)
 
