@@ -70,7 +70,15 @@ ridiculousJiangHu_roles = {'侠客': '与反派敌对', '反派': '与侠客敌�
 
 # JiangHu II script abstract
 # Conditions are clear, Actions would be like this:
-# <nsubj>[PERSON]   (<> for dep_, {} for  and [] for ent_type_)
+# <nsubj>[PERSON] {VERB}S='TALK TO' <dobj>[PERSON] (<> for dep_, {} for pos_, S for Semantics and [] for ent_type_)
+# <nsubj>[PERSON] {VERB}S='SAY'
+# <nsubj>[PERSON] {VERB}S='GAIN' <dobj>[PRODUCT/MONEY/WORK_OF_ART]
+# <nsubj>[PERSON] {VERB}S='FIGHT' <dobj>[PERSON]
+# <nsubj>[PERSON] {VERB}S='BEAT DOWN' <dobj>[PERSON]
+# <nsubj>[PERSON] {VERB}S='KILL' <dobj>[PERSON]
+# <nsubj>[PERSON] {VERB}S='MOVE TO' <dobj>[LOC/GPE]
+# <nsubj>[PERSON] {VERB}S='ATTEND' <dobj>[EVENT]
+# __OTHER_PROPP_MODEL_LIKE_SCRIPTS_WILL_BE_ADDED_
 
 # Semantic Search based on sentence transformer
 

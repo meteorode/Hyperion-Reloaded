@@ -391,6 +391,11 @@ def dixit(name, docs): # Etymology Borrowed from Latin ipse dīxit (“he himsel
     dixit_words = {}
     return dixit_words
 
+# spaCy supports the following entity types:
+# PERSON, NORP (nationalities, religious and political groups), FAC (buildings, airports etc.), 
+# ORG (organizations), GPE (countries, cities etc.), LOC (mountain ranges, water bodies etc.), PRODUCT (products), 
+# EVENT (event names), WORK_OF_ART (books, song titles), LAW (legal document titles), LANGUAGE (named languages), DATE, TIME, PERCENT, MONEY, QUANTITY, ORDINAL and CARDINAL
+
 def eye_tracking(doc, name_set):  # return series like 'PERSON'(supposed to be nsubj) MOVE TO 'LOC'/'GPE' or 'PERSON' ATTEND 'EVENT'
     scripts = []
     doc_milestone = find_sents_with_specs(doc, ['LOC', 'GPE', 'EVENT'])[1]
