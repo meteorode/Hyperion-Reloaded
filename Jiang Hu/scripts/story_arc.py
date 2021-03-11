@@ -52,7 +52,7 @@ propp_models = {'Absentation': 'Someone goes missing', 'Interdiction': 'Hero is 
                 'Task': 'Difficult task proposed to the hero', 'Solution': 'Task is resolved', 'Recognition': 'Hero is recognised', 'Exposure': 'False hero is exposed',
                 'Transfiguration': 'Hero is given a new appearance', 'Punishment': 'Villain is punished', 'Wedding': 'Hero marries and ascends the throne'}
 
-def read_propp_details(filename):   # read detaied description from file
+def read_model_details(filename):   # read detaied description from file
     details = {}
     with open(filename, 'r') as file:
         for line in file:
@@ -63,6 +63,16 @@ def read_propp_details(filename):   # read detaied description from file
                 value = dict_pairs[1]
                 details[key] = value
     return details
+
+# ridiculousJiangHu models
+
+ridiculousJiangHu_roles = {'侠客': '与反派敌对', '反派': '与侠客敌对', }
+
+# JiangHu II script abstract
+# Conditions are clear, Actions would be like this:
+# <nsubj>[PERSON]   (<> for dep_, {} for  and [] for ent_type_)
+
+# Semantic Search based on sentence transformer
 
 def semantic_search(corpus, queries, result_num): # # Find the closest {result_num} sentences of the corpus for each query sentence based on cosine similarity
     corpus_embeddings = embedder.encode(corpus, convert_to_tensor = True)
@@ -88,6 +98,7 @@ def test():
         docs.append(nlp(txt))
     doc_milestone = list(persona.find_sents_with_specs(docs, ['PERSON', 'LOC', 'GPE', 'EVENT'])[1].values())
     queries = list(propp_models.values())
-    semantic_search(doc_milestone, queries, 10)
+    complex_queries = list(read_model_details('./propp.txt').values())
+    semantic_search(doc_milestone, complex_queries, 10)
 
 test()
