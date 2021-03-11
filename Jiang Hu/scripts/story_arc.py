@@ -80,6 +80,15 @@ ridiculousJiangHu_roles = {'侠客': '与反派敌对', '反派': '与侠客敌�
 # <nsubj>[PERSON] {VERB}S='ATTEND' <dobj>[EVENT]
 # __OTHER_PROPP_MODEL_LIKE_SCRIPTS_WILL_BE_ADDED_
 
+# def script_extractor(doc_slice, )
+
+def word_similarity(w1, w2):    # Use model.encode() and pytorch_cos_sim() to calc
+    emb1 = embedder.encode(w1)
+    emb2 = embedder.encode(w2)
+    
+    cos_sim = util.pytorch_cos_sim(emb1, emb2)
+    return cos_sim
+
 # Semantic Search based on sentence transformer
 
 def semantic_search(corpus, queries, result_num): # # Find the closest {result_num} sentences of the corpus for each query sentence based on cosine similarity
@@ -100,13 +109,15 @@ def semantic_search(corpus, queries, result_num): # # Find the closest {result_n
 
 # Test Unit
 def test():
-    txts = persona.read_chapters(persona.shediao)
-    docs = []
-    for txt in txts:
-        docs.append(nlp(txt))
-    doc_milestone = list(persona.find_sents_with_specs(docs, ['PERSON', 'LOC', 'GPE', 'EVENT'])[1].values())
-    queries = list(propp_models.values())
-    complex_queries = list(read_model_details('./propp.txt').values())
-    semantic_search(doc_milestone, complex_queries, 10)
+    #txts = persona.read_chapters(persona.shediao)
+    #docs = []
+    #for txt in txts:
+    #    docs.append(nlp(txt))
+    #doc_milestone = list(persona.find_sents_with_specs(docs, ['PERSON', 'LOC', 'GPE', 'EVENT'])[1].values())
+    #queries = list(propp_models.values())
+    #complex_queries = list(read_model_details('./propp.txt').values())
+    #semantic_search(doc_milestone, complex_queries, 10)
+    print(word_similarity('talk', 'talk'))
+    print(word_similarity('talk', '说'))
 
 test()

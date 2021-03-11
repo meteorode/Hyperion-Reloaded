@@ -425,4 +425,4 @@ def test():
     names = list(count_big_names(jinyong_names, docs, 20))
     personality_traits_analysis('shediao', docs, names, 'hourglass')
 
-test()
+#test()
