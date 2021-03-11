@@ -86,7 +86,7 @@ def word_similarity(w1, w2):    # Use model.encode() and pytorch_cos_sim() to ca
     emb1 = embedder.encode(w1)
     emb2 = embedder.encode(w2)
     
-    cos_sim = util.pytorch_cos_sim(emb1, emb2)
+    cos_sim = util.pytorch_cos_sim(emb1, emb2).item()   # convert an 1 dimensional tensor to float
     return cos_sim
 
 # Semantic Search based on sentence transformer
@@ -119,5 +119,6 @@ def test():
     #semantic_search(doc_milestone, complex_queries, 10)
     print(word_similarity('talk', 'talk'))
     print(word_similarity('talk', '说'))
+    print(word_similarity('爱', '说'))
 
 test()
