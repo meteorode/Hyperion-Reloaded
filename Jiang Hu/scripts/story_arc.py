@@ -58,7 +58,7 @@ def read_propp_details(filename):   # read detaied description from file
         for line in file:
             if line != '':
                 dict_pairs = line.split('|')
-                assert (len(dict_pairs) = 2) == True
+                assert (len(dict_pairs) == 2) == True
                 key = dict_pairs[0]
                 value = dict_pairs[1]
                 details[key] = value
@@ -86,7 +86,7 @@ def test():
     docs = []
     for txt in txts:
         docs.append(nlp(txt))
-    doc_milestone = persona.find_sents_with_specs(docs, ['PERSON', 'LOC', 'GPE', 'EVENT'])[1]
+    doc_milestone = list(persona.find_sents_with_specs(docs, ['PERSON', 'LOC', 'GPE', 'EVENT'])[1].values())
     queries = list(propp_models.values())
     semantic_search(doc_milestone, queries, 10)
 
