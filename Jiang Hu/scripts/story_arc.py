@@ -119,14 +119,7 @@ def script_extractor(text):  # extract scripts like infomation from raw text
             for token_in_sent in sent:
                 if token_in_sent.dep_ == 'nsubj' and token_in_sent.ent_type_ == 'PERSON':
                     nsubj = token_in_sent.text            
-            if action == 'talk':
-                for token_in_sent in sent:
-                    if token_in_sent.dep_ == 'dobj' and token_in_sent.ent_type_ == 'PERSON':
-                        dobj = token_in_sent.text
-                if (nsubj != '' and dobj != ''):
-                    script = nsubj + ' TALK TO: ' + dobj
-                    scripts_list.append(script)
-            elif action == 'say':
+            if action == 'say':
                 dixit = '' # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
                       # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
                 dixit = sent.text.partition('“')[2].rpartition('”')[0]
@@ -140,6 +133,35 @@ def script_extractor(text):  # extract scripts like infomation from raw text
                 if (nsubj != '' and dobj != ''):
                     script = nsubj + ' GAIN: ' + dobj
                     scripts_list.append(script)
+            elif action in ['fight', 'talk', 'beat', 'kill']:
+                for token_in_sent in sent:
+                    if token_in_sent.dep_ == 'dobj' and token_in_sent.ent_type_ == 'PERSON':
+                        dobj = token_in_sent.text
+                if (nsubj != '' and dobj != ''):
+                    if action == 'fight':
+                        script = nsubj + ' FIGHT WITH: ' + dobj
+                    elif action == 'talk':
+                        script = nsubj + ' TALK TO: ' + dobj
+                    elif action == 'beat':
+                        script = nsubj + ' BEAT DOWN: ' + dobj
+                    elif action == 'kill':
+                        script = nsubj + ' KILL: ' + dobj
+                    scripts_list.append(script)
+            elif action == 'move':
+                for token_in_sent in sent:
+                    if token_in_sent.dep_ == 'dobj' and (token_in_sent.ent_type_ in ['GPE', 'LOC']):
+                        dobj = token_in_sent.text
+                if (nsubj != '' and dobj != ''):
+                    script = nsubj + ' MOVE TO: ' + dobj
+                    scripts_list.append(script)
+            elif action == 'attend':
+                for token_in_sent in sent:
+                    if token_in_sent.dep_ == 'dobj' and (token_in_sent.ent_type_ == 'EVENT'):
+                        dobj = token_in_sent.text
+                if (nsubj != '' and dobj != ''):
+                    script = nsubj + ' ATTEND: ' + dobj
+                    scripts_list.append(script)                
+
     return scripts_list
 
 # Semantic Search based on sentence transformer
@@ -163,12 +185,15 @@ def semantic_search(corpus, queries, result_num): # # Find the closest {result_n
 # Test Unit
 def test():
     txts = persona.read_chapters(persona.shediao)
-    docs = []
+    book_name = 'shediao'
+    all_cmds = []
     for txt in txts:
-        sl = script_extractor(txt)
-        for s in sl:
-            print(s)
-    #    docs.append(nlp(txt))
+        all_cmds.append(script_extractor(txt))
+    with open('%s_timeline.txt' %(book_name), 'w+') as file:
+        for cmds in all_cmds:
+            for cmd in cmds:
+                file.write(cmd + '\n')
+    #docs.append(nlp(txt))
     #doc_milestone = list(persona.find_sents_with_specs(docs, ['PERSON', 'LOC', 'GPE', 'EVENT'])[1].values())
     #queries = list(propp_models.values())
     #complex_queries = list(read_model_details('./propp.txt').values())
