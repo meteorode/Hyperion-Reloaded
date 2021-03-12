@@ -23,7 +23,7 @@ import torch
 spacy.prefer_gpu()  # Using GPU to run programm
 
 nlp = spacy.load('zh_core_web_trf') # spacy 3.0 stable model.
-en_nlp = spacy.load('en_core_web_trf')
+#en_nlp = spacy.load('en_core_web_trf')
 
 sn = SenticNet()
 cn_sn = BabelSenticNet('cn')    # Use SenticNet to analysis.
@@ -101,7 +101,6 @@ def action_classify(word, bar=0.6):   # Suppose a word similarity bar to judge
     for action in JiangHuActions:
         sims[action] = word_similarity(word, action)
     sorted_sims = sort_dict(sims)
-    print(sorted_sims)
     if (list(sorted_sims.values())[0] >= bar):
         return list(sorted_sims.keys())[0]
     else:
@@ -110,9 +109,33 @@ def action_classify(word, bar=0.6):   # Suppose a word similarity bar to judge
 def script_extractor(text):  # extract scripts like infomation from raw text
     doc = nlp(text)
     verbs = {}  # a dict like {verb.text: verb.sent}
+    script = ''
     for token in doc:
         if token.pos_ == 'VERB':
-            pass    # _TO_BE_CONTINUE_
+            action = action_classify(token.text)
+            if action == 'talk':
+                nsubj = ''
+                dobj = ''
+                sent = token.sent
+                for token_in_sent in sent:
+                    if token_in_sent.dep_ == 'nsubj' and token_in_sent.ent_type_ == 'PERSON':
+                        nsubj = token_in_sent.text
+                    if token_in_sent.dep_ == 'dobj' and token_in_sent.ent_type_ == 'PERSON':
+                        dobj = token_in_sent.text
+                if (nsubj != '' and dobj != ''):
+                    script = nsubj + ' TALK TO: ' + dobj
+            elif action == 'say':
+                nsubj = ''
+                sent = token.sent
+                for token_in_sent in sent:
+                    if token_in_sent.dep_ == 'nsubj' and token_in_sent.ent_type_ == 'PERSON':
+                        nsubj = token_in_sent.text
+                dixit = '' # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
+                      # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
+                dixit = sent.text.partition('“')[2].rpartition('”')[0]
+                if (nsubj != '' and dixit != ''):
+                    script = nsubj + ' SAY: ' + dixit
+
 
 # Semantic Search based on sentence transformer
 
@@ -134,18 +157,14 @@ def semantic_search(corpus, queries, result_num): # # Find the closest {result_n
 
 # Test Unit
 def test():
-    #txts = persona.read_chapters(persona.shediao)
-    #docs = []
-    #for txt in txts:
+    txts = persona.read_chapters(persona.shediao)
+    docs = []
+    for txt in txts:
+        script_extractor(txt)
     #    docs.append(nlp(txt))
     #doc_milestone = list(persona.find_sents_with_specs(docs, ['PERSON', 'LOC', 'GPE', 'EVENT'])[1].values())
     #queries = list(propp_models.values())
     #complex_queries = list(read_model_details('./propp.txt').values())
     #semantic_search(doc_milestone, complex_queries, 10)
-    test0 = action_classify('beat')
-    test1 = action_classify('走路')
-    test2 = action_classify('walk')
-    test3 = action_classify('吃饭')
-    print(test0, test1, test2, test3)
 
 test()
