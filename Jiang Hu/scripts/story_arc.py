@@ -106,6 +106,11 @@ def action_classify(word, bar=0.6):   # Suppose a word similarity bar to judge
     else:
         return 'none'
 
+def script_extractor(doc): # extract scripts like information from docs
+    scripts_list = []
+    script = nsubj = dobj = ''
+    
+
 def script_extractor(text):  # extract scripts like infomation from raw text
     doc = nlp(text)
     scripts_list = []
