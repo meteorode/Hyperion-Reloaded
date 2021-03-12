@@ -185,14 +185,18 @@ def semantic_search(corpus, queries, result_num): # # Find the closest {result_n
 # Test Unit
 def test():
     txts = persona.read_chapters(persona.shediao)
+    print('===Finish Reading===\n')
     book_name = 'shediao'
     all_cmds = []
     for txt in txts:
-        all_cmds.append(script_extractor(txt))
+        cmds = script_extractor(txt)
+        print('==Chapter %d parsed.==\n' %(txts.index(txt)) )
+        all_cmds.append(cmds)
     with open('%s_timeline.txt' %(book_name), 'w+') as file:
         for cmds in all_cmds:
             for cmd in cmds:
                 file.write(cmd + '\n')
+            print('==Some part write finished\n')
     #docs.append(nlp(txt))
     #doc_milestone = list(persona.find_sents_with_specs(docs, ['PERSON', 'LOC', 'GPE', 'EVENT'])[1].values())
     #queries = list(propp_models.values())
