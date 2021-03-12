@@ -30,7 +30,21 @@ cn_sn = BabelSenticNet('cn')    # Use SenticNet to analysis.
 
 p = Path('.')   # current Path
 
+# Fundamental modules
+
+def sort_dict(dict): # return a sorted dictionary by values
+    sorted_tuples = sorted(dict.items(), key=lambda item:item[1], reverse=True)   # return a sorted tuple by lambda function
+    sorted_dict = {k: v for k, v in sorted_tuples}
+    return sorted_dict
+
 embedder = SentenceTransformer('./models/distiluse-base-multilingual-cased')
+
+def word_similarity(w1, w2):    # Use model.encode() and pytorch_cos_sim() to calc
+    emb1 = embedder.encode(w1)
+    emb2 = embedder.encode(w2)
+    
+    cos_sim = util.pytorch_cos_sim(emb1, emb2).item()   # convert an 1 dimensional tensor to float
+    return cos_sim
 
 # Define heroes
 
@@ -80,14 +94,25 @@ ridiculousJiangHu_roles = {'侠客': '与反派敌对', '反派': '与侠客敌�
 # <nsubj>[PERSON] {VERB}S='ATTEND' <dobj>[EVENT]
 # __OTHER_PROPP_MODEL_LIKE_SCRIPTS_WILL_BE_ADDED_
 
-# def script_extractor(doc_slice, )
+JiangHuActions = ['talk', 'say', 'gain', 'fight', 'beat', 'kill', 'move', 'attend']
 
-def word_similarity(w1, w2):    # Use model.encode() and pytorch_cos_sim() to calc
-    emb1 = embedder.encode(w1)
-    emb2 = embedder.encode(w2)
-    
-    cos_sim = util.pytorch_cos_sim(emb1, emb2).item()   # convert an 1 dimensional tensor to float
-    return cos_sim
+def action_classify(word, bar=0.6):   # Suppose a word similarity bar to judge
+    sims = {}
+    for action in JiangHuActions:
+        sims[action] = word_similarity(word, action)
+    sorted_sims = sort_dict(sims)
+    print(sorted_sims)
+    if (list(sorted_sims.values())[0] >= bar):
+        return list(sorted_sims.keys())[0]
+    else:
+        return 'none'
+
+def script_extractor(text):  # extract scripts like infomation from raw text
+    doc = nlp(text)
+    verbs = {}  # a dict like {verb.text: verb.sent}
+    for token in doc:
+        if token.pos_ == 'VERB':
+            pass    # _TO_BE_CONTINUE_
 
 # Semantic Search based on sentence transformer
 
@@ -117,8 +142,10 @@ def test():
     #queries = list(propp_models.values())
     #complex_queries = list(read_model_details('./propp.txt').values())
     #semantic_search(doc_milestone, complex_queries, 10)
-    print(word_similarity('talk', 'talk'))
-    print(word_similarity('talk', '说'))
-    print(word_similarity('爱', '说'))
+    test0 = action_classify('beat')
+    test1 = action_classify('走路')
+    test2 = action_classify('walk')
+    test3 = action_classify('吃饭')
+    print(test0, test1, test2, test3)
 
 test()
