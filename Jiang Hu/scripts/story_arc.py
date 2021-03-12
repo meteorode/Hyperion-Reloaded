@@ -108,7 +108,7 @@ def action_classify(word, bar=0.6):   # Suppose a word similarity bar to judge
 
 def script_extractor(text):  # extract scripts like infomation from raw text
     doc = nlp(text)
-    verbs = {}  # a dict like {verb.text: verb.sent}
+    scripts_list = []
     script = ''
     nsubj = ''
     dobj = ''
@@ -125,20 +125,22 @@ def script_extractor(text):  # extract scripts like infomation from raw text
                         dobj = token_in_sent.text
                 if (nsubj != '' and dobj != ''):
                     script = nsubj + ' TALK TO: ' + dobj
+                    scripts_list.append(script)
             elif action == 'say':
                 dixit = '' # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
                       # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
                 dixit = sent.text.partition('“')[2].rpartition('”')[0]
                 if (nsubj != '' and dixit != ''):
                     script = nsubj + ' SAY: ' + dixit
+                    scripts_list.append(script)
             elif action == 'gain':
                 for token_in_sent in sent:
                     if token_in_sent.dep_ == 'dobj' and (token_in_sent.ent_type_ in ['PRODUCT', 'MONEY', 'WORK_OF_ART']):
                         dobj = token_in_sent.text
                 if (nsubj != '' and dobj != ''):
                     script = nsubj + ' GAIN: ' + dobj
-            if (script != ''):
-                print(script)
+                    scripts_list.append(script)
+    return scripts_list
 
 # Semantic Search based on sentence transformer
 
@@ -163,7 +165,9 @@ def test():
     txts = persona.read_chapters(persona.shediao)
     docs = []
     for txt in txts:
-        script_extractor(txt)
+        sl = script_extractor(txt)
+        for s in sl:
+            print(s)
     #    docs.append(nlp(txt))
     #doc_milestone = list(persona.find_sents_with_specs(docs, ['PERSON', 'LOC', 'GPE', 'EVENT'])[1].values())
     #queries = list(propp_models.values())
