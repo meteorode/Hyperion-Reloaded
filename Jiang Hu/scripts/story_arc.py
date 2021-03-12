@@ -110,32 +110,35 @@ def script_extractor(text):  # extract scripts like infomation from raw text
     doc = nlp(text)
     verbs = {}  # a dict like {verb.text: verb.sent}
     script = ''
+    nsubj = ''
+    dobj = ''
     for token in doc:
         if token.pos_ == 'VERB':
             action = action_classify(token.text)
+            sent = token.sent
+            for token_in_sent in sent:
+                if token_in_sent.dep_ == 'nsubj' and token_in_sent.ent_type_ == 'PERSON':
+                    nsubj = token_in_sent.text            
             if action == 'talk':
-                nsubj = ''
-                dobj = ''
-                sent = token.sent
                 for token_in_sent in sent:
-                    if token_in_sent.dep_ == 'nsubj' and token_in_sent.ent_type_ == 'PERSON':
-                        nsubj = token_in_sent.text
                     if token_in_sent.dep_ == 'dobj' and token_in_sent.ent_type_ == 'PERSON':
                         dobj = token_in_sent.text
                 if (nsubj != '' and dobj != ''):
                     script = nsubj + ' TALK TO: ' + dobj
             elif action == 'say':
-                nsubj = ''
-                sent = token.sent
-                for token_in_sent in sent:
-                    if token_in_sent.dep_ == 'nsubj' and token_in_sent.ent_type_ == 'PERSON':
-                        nsubj = token_in_sent.text
                 dixit = '' # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
                       # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
                 dixit = sent.text.partition('“')[2].rpartition('”')[0]
                 if (nsubj != '' and dixit != ''):
                     script = nsubj + ' SAY: ' + dixit
-
+            elif action == 'gain':
+                for token_in_sent in sent:
+                    if token_in_sent.dep_ == 'dobj' and (token_in_sent.ent_type_ in ['PRODUCT', 'MONEY', 'WORK_OF_ART']):
+                        dobj = token_in_sent.text
+                if (nsubj != '' and dobj != ''):
+                    script = nsubj + ' GAIN: ' + dobj
+            if (script != ''):
+                print(script)
 
 # Semantic Search based on sentence transformer
 
