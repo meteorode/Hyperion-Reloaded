@@ -120,7 +120,6 @@ def sent_type_judge(sent):	# judge a sent obj's type
                     found_speaker = True
             if (found_speaker == False):
                 nsubj = '作者'
-                print(sent.text)
             break
         elif token.ent_type_ in ['GPE', 'LOC']:
             sent_type = 'move'
@@ -167,20 +166,23 @@ def script_auto_complete(sent, sent_type_lists):    # sent_type_lists should be 
         for token in sent:
             if token.dep_ == 'nsubj' and token.pos_ == 'NOUN':
                 nsubj = token.text
-        script = nsubj + action_table[sent_type] + dobj
-        print(script)
+        if (dobj != ''):
+            script = nsubj + action_table[sent_type] + dobj
+            print(script)
     elif sent_type in ['talk', 'defeat', 'kill', 'fight']:
         for token in sent:
             if token.dep_ == 'dobj' and token.pos_ == 'NOUN':
                 dobj = token.text
-        script = nsubj + action_table[sent_type] + dobj
-        print(script)
+        if (dobj != ''):
+            script = nsubj + action_table[sent_type] + dobj
+            print(script)
     elif sent_type == 'say':
         dixit = '' # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
             # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
         dixit = trim_conversation(sent.text)
-        script = nsubj + ' SAY: ' + dixit
-        print(script)
+        if dixit != '':
+            script = nsubj + ' SAY: ' + dixit
+            print(script)
     return script
 
 def script_extractor(doc): # extract scripts like information from docs
@@ -214,7 +216,7 @@ def semantic_search(corpus, queries, result_num): # # Find the closest {result_n
 
 # Test Unit
 def test():
-    txts = persona.read_chapters(persona.shediao)[0:2]
+    txts = persona.read_chapters(persona.shediao)
     print('===Finish Reading===\n')
     book_name = 'shediao'
     all_cmds = []
