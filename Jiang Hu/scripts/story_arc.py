@@ -105,13 +105,51 @@ def action_classify(word, bar=0.6):   # Suppose a word similarity bar to judge
         return list(sorted_sims.keys())[0]
     else:
         return 'none'
+        
+def sent_type_judge(sent):	# judge a sent obj's type
+    sent_type = ''
+    nsubj = ''
+    dobj = ''
+    for token in sent:
+    	if token.ent_type_ in ['GPE', 'LOC']:
+    		sent_type = 'move'
+    		dobj = token.text
+    		break
+    	elif token.ent_type_ in ['PRODUCT', 'MONEY', 'WORK_OF_ART']:
+    		sent_type = 'gain'
+    		dobj = token.text
+    		break
+    	elif token.ent_type_ in ['EVENT']:
+    		sent_type = 'attend'
+    		dobj = token.text
+    		break
+    	elif token.ent_type_ == 'PERSON' and token.dep_ == 'nsubj':
+    		sent_type = 'other'
+    		nsubj = token.text
+    		break
+    return [sent_type, nsubj, dobj]
 
 def script_extractor(doc): # extract scripts like information from docs
     scripts_list = []
     script = nsubj = dobj = ''
+    sents = doc.sents # We'll use sentence for basic units
+    for sent in sents:
+    	sent_type_lists = sent_type_judge(sent)
+    	sent_type = sent_type_lists[0]
+    	if sent_type == 'move':
+    		actual_move = False
+    		dobj = sent_type_lists[2]
+    		for token in sent:
+    			if token.dep_ == 'ROOT' and action_classify(token.text) == 'move':
+    				actual_move = True
+    			elif token.dep_ == 'nsubj' and token.ent_type_ == 'PERSON':
+    				nsubj = token.text
+    		if (actual_move == True) and (nsubj != '') and (dobj != ''):
+    			script = nsubj + ' MOVE TO: ' + dobj
+    			scripts_list.append(script)
     
 
-def script_extractor(text):  # extract scripts like infomation from raw text
+def old_script_extractor(text):  # extract scripts like infomation from raw text, abandoned
     doc = nlp(text)
     scripts_list = []
     script = ''
