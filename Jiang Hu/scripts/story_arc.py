@@ -94,7 +94,7 @@ ridiculousJiangHu_roles = {'侠客': '与反派敌对', '反派': '与侠客敌�
 # <nsubj>[PERSON] {VERB}S='ATTEND' <dobj>[EVENT]
 # __OTHER_PROPP_MODEL_LIKE_SCRIPTS_WILL_BE_ADDED_
 
-JiangHuActions = ['talk', 'say', 'gain', 'fight', 'beat', 'kill', 'move', 'attend']
+JiangHuActions = ['talk', 'say', 'gain', 'fight', 'defeat', 'kill', 'move', 'attend']
 
 def action_classify(word, bar=0.6):   # Suppose a word similarity bar to judge
     sims = {}
@@ -111,100 +111,87 @@ def sent_type_judge(sent):	# judge a sent obj's type
     nsubj = ''
     dobj = ''
     for token in sent:
-    	if token.ent_type_ in ['GPE', 'LOC']:
-    		sent_type = 'move'
-    		dobj = token.text
-    		break
-    	elif token.ent_type_ in ['PRODUCT', 'MONEY', 'WORK_OF_ART']:
-    		sent_type = 'gain'
-    		dobj = token.text
-    		break
-    	elif token.ent_type_ in ['EVENT']:
-    		sent_type = 'attend'
-    		dobj = token.text
-    		break
-    	elif token.ent_type_ == 'PERSON' and token.dep_ == 'nsubj':
-    		sent_type = 'other'
-    		nsubj = token.text
-    		break
+        if token.pos_ == 'VERB' and action_classify(token.text) == 'say':
+            sent_type = 'say'
+            found_speaker = False
+            for c in token.children:
+                if c.dep_ == 'nsubj' and c.pos_ == 'NOUN':
+                    nsubj = c.text
+                    found_speaker = True
+            if (found_speaker == False):
+                nsubj = '作者'
+                print(sent.text)
+            break
+        elif token.ent_type_ in ['GPE', 'LOC']:
+            sent_type = 'move'
+            dobj = token.text
+            break
+        elif token.ent_type_ in ['PRODUCT', 'MONEY', 'WORK_OF_ART']:
+            sent_type = 'gain'
+            dobj = token.text
+            break
+        elif token.ent_type_ in ['EVENT']:
+            sent_type = 'attend'
+            dobj = token.text
+            break
+        elif token.ent_type_ == 'PERSON' and token.dep_ == 'nsubj':
+            action_related = action_classify(token.head.text)
+            if (action_related in ['talk', 'kill', 'fight', 'defeat']):
+                sent_type = action_related
+            nsubj = token.text
+            break
     return [sent_type, nsubj, dobj]
+
+def trim_conversation(words):   # trim “” and ‘’
+    thou_say = ''
+    quota_marks = {'“': '”', '‘': '’'}
+    for left in quota_marks:
+        if left in words:
+            temp_words = words.partition(left)[2]
+            if quota_marks[left] in temp_words:
+                thou_say = temp_words.rpartition(quota_marks[left])[0]
+            else:
+                thou_say = temp_words
+            return thou_say
+    return thou_say
+
+def script_auto_complete(sent, sent_type_lists):    # sent_type_lists should be [sent_type, nsubj, dobj] calculated by judger.
+    assert (len(sent_type_lists) == 3) == True
+    sent_type = sent_type_lists[0]
+    nsubj = sent_type_lists[1]
+    dobj = sent_type_lists[2]
+    script = ''
+    action_table = {'move': ' MOVE TO: ', 'gain': ' GAIN: ', 'attend': ' ATTEND: ', 'talk': ' TALK TO: ', 
+    'defeat': ' DEFEAT: ', 'say': ' SAY: ', 'fight': ' FIGHT WITH: ', 'kill': ' KILL: '}
+    if sent_type in ['move', 'gain', 'attend']:
+        for token in sent:
+            if token.dep_ == 'nsubj' and token.pos_ == 'NOUN':
+                nsubj = token.text
+        script = nsubj + action_table[sent_type] + dobj
+        print(script)
+    elif sent_type in ['talk', 'defeat', 'kill', 'fight']:
+        for token in sent:
+            if token.dep_ == 'dobj' and token.pos_ == 'NOUN':
+                dobj = token.text
+        script = nsubj + action_table[sent_type] + dobj
+        print(script)
+    elif sent_type == 'say':
+        dixit = '' # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
+            # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
+        dixit = trim_conversation(sent.text)
+        script = nsubj + ' SAY: ' + dixit
+        print(script)
+    return script
 
 def script_extractor(doc): # extract scripts like information from docs
     scripts_list = []
-    script = nsubj = dobj = ''
+    script =  ''
     sents = doc.sents # We'll use sentence for basic units
     for sent in sents:
-    	sent_type_lists = sent_type_judge(sent)
-    	sent_type = sent_type_lists[0]
-    	if sent_type == 'move':
-    		actual_move = False
-    		dobj = sent_type_lists[2]
-    		for token in sent:
-    			if token.dep_ == 'ROOT' and action_classify(token.text) == 'move':
-    				actual_move = True
-    			elif token.dep_ == 'nsubj' and token.ent_type_ == 'PERSON':
-    				nsubj = token.text
-    		if (actual_move == True) and (nsubj != '') and (dobj != ''):
-    			script = nsubj + ' MOVE TO: ' + dobj
-    			scripts_list.append(script)
-    
-
-def old_script_extractor(text):  # extract scripts like infomation from raw text, abandoned
-    doc = nlp(text)
-    scripts_list = []
-    script = ''
-    nsubj = ''
-    dobj = ''
-    for token in doc:
-        if token.pos_ == 'VERB':
-            action = action_classify(token.text)
-            sent = token.sent
-            for token_in_sent in sent:
-                if token_in_sent.dep_ == 'nsubj' and token_in_sent.ent_type_ == 'PERSON':
-                    nsubj = token_in_sent.text            
-            if action == 'say':
-                dixit = '' # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
-                      # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
-                dixit = sent.text.partition('“')[2].rpartition('”')[0]
-                if (nsubj != '' and dixit != ''):
-                    script = nsubj + ' SAY: ' + dixit
-                    scripts_list.append(script)
-            elif action == 'gain':
-                for token_in_sent in sent:
-                    if token_in_sent.dep_ == 'dobj' and (token_in_sent.ent_type_ in ['PRODUCT', 'MONEY', 'WORK_OF_ART']):
-                        dobj = token_in_sent.text
-                if (nsubj != '' and dobj != ''):
-                    script = nsubj + ' GAIN: ' + dobj
-                    scripts_list.append(script)
-            elif action in ['fight', 'talk', 'beat', 'kill']:
-                for token_in_sent in sent:
-                    if token_in_sent.dep_ == 'dobj' and token_in_sent.ent_type_ == 'PERSON':
-                        dobj = token_in_sent.text
-                if (nsubj != '' and dobj != ''):
-                    if action == 'fight':
-                        script = nsubj + ' FIGHT WITH: ' + dobj
-                    elif action == 'talk':
-                        script = nsubj + ' TALK TO: ' + dobj
-                    elif action == 'beat':
-                        script = nsubj + ' BEAT DOWN: ' + dobj
-                    elif action == 'kill':
-                        script = nsubj + ' KILL: ' + dobj
-                    scripts_list.append(script)
-            elif action == 'move':
-                for token_in_sent in sent:
-                    if token_in_sent.dep_ == 'dobj' and (token_in_sent.ent_type_ in ['GPE', 'LOC']):
-                        dobj = token_in_sent.text
-                if (nsubj != '' and dobj != ''):
-                    script = nsubj + ' MOVE TO: ' + dobj
-                    scripts_list.append(script)
-            elif action == 'attend':
-                for token_in_sent in sent:
-                    if token_in_sent.dep_ == 'dobj' and (token_in_sent.ent_type_ == 'EVENT'):
-                        dobj = token_in_sent.text
-                if (nsubj != '' and dobj != ''):
-                    script = nsubj + ' ATTEND: ' + dobj
-                    scripts_list.append(script)                
-
+        sent_type_lists = sent_type_judge(sent)
+        script = script_auto_complete(sent, sent_type_lists)
+        if script != '':
+            scripts_list.append(script)
     return scripts_list
 
 # Semantic Search based on sentence transformer
@@ -227,12 +214,14 @@ def semantic_search(corpus, queries, result_num): # # Find the closest {result_n
 
 # Test Unit
 def test():
-    txts = persona.read_chapters(persona.shediao)
+    txts = persona.read_chapters(persona.shediao)[0:2]
     print('===Finish Reading===\n')
     book_name = 'shediao'
     all_cmds = []
     for txt in txts:
-        cmds = script_extractor(txt)
+        doc = nlp(txt)
+        print('==spaCy NLP done!==\n')
+        cmds = script_extractor(doc)
         print('==Chapter %d parsed.==\n' %(txts.index(txt)) )
         all_cmds.append(cmds)
     with open('%s_timeline.txt' %(book_name), 'w+') as file:
