@@ -225,7 +225,7 @@ def write_script(book_name, slice_length, doc_type):  # Write scipts to files, s
             if doc_type == 'cn':
                 doc = nlp(txt)
             elif doc_type == 'en':
-                dco = en_nlp(txt)
+                doc = en_nlp(txt)
             print('===spaCy NLP done!===\n')
             cmds = script_extractor(doc)
             print('===Chapter %d parsed!===\n' %(txts.index(txt)+1))
