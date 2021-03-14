@@ -190,18 +190,18 @@ def test():
     txts = persona.read_chapters(persona.shendiao)
     print('===Finish Reading===\n')
     book_name = 'shendiao'
-    all_cmds = []
     txts_num = len(txts)
     if txts_num >= 6:   # Magic Number!
         part_num = int(txts_num/6) + 1
     for i in range(part_num):
+        all_cmds = []
         for p in range(6):
             txt = txts[min(i*6 + p, txts_num-1)]
             doc = nlp(txt)
             print('==spaCy NLP done!==\n')
             cmds = script_extractor(doc)
             print('==Chapter %d parsed.==\n' %(txts.index(txt)+1) )
-        all_cmds.append(cmds)
+            all_cmds.append(cmds)
         with open('%s_timeline_part%d.txt' %(book_name, i), 'w+') as file:
             for cmds in all_cmds:
                 for cmd in cmds:
