@@ -168,21 +168,18 @@ def script_auto_complete(sent, sent_type_lists):    # sent_type_lists should be 
                 nsubj = token.text
         if (dobj != ''):
             script = nsubj + action_table[sent_type] + dobj
-            print(script)
     elif sent_type in ['talk', 'defeat', 'kill', 'fight']:
         for token in sent:
             if token.dep_ == 'dobj' and token.pos_ == 'NOUN':
                 dobj = token.text
         if (dobj != ''):
             script = nsubj + action_table[sent_type] + dobj
-            print(script)
     elif sent_type == 'say':
         dixit = '' # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
             # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
         dixit = trim_conversation(sent.text)
         if dixit != '':
             script = nsubj + ' SAY: ' + dixit
-            print(script)
     return script
 
 def script_extractor(doc): # extract scripts like information from docs
