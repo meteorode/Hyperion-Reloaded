@@ -105,41 +105,6 @@ def action_classify(word, bar=0.6):   # Suppose a word similarity bar to judge
         return list(sorted_sims.keys())[0]
     else:
         return 'none'
-        
-def sent_type_judge(sent):	# judge a sent obj's type
-    sent_type = ''
-    nsubj = ''
-    dobj = ''
-    for token in sent:
-        if token.pos_ == 'VERB' and action_classify(token.text) == 'say':
-            sent_type = 'say'
-            found_speaker = False
-            for c in token.children:
-                if c.dep_ == 'nsubj' and c.pos_ == 'NOUN':
-                    nsubj = c.text
-                    found_speaker = True
-            if (found_speaker == False):
-                nsubj = '作者'
-            break
-        elif token.ent_type_ in ['GPE', 'LOC']:
-            sent_type = 'move'
-            dobj = token.text
-            break
-        elif token.ent_type_ in ['PRODUCT', 'MONEY', 'WORK_OF_ART']:
-            sent_type = 'gain'
-            dobj = token.text
-            break
-        elif token.ent_type_ in ['EVENT']:
-            sent_type = 'attend'
-            dobj = token.text
-            break
-        elif token.ent_type_ == 'PERSON' and token.dep_ == 'nsubj':
-            action_related = action_classify(token.head.text)
-            if (action_related in ['talk', 'kill', 'fight', 'defeat']):
-                sent_type = action_related
-            nsubj = token.text
-            break
-    return [sent_type, nsubj, dobj]
 
 def trim_conversation(words):   # trim “” and ‘’
     thou_say = ''
@@ -154,44 +119,53 @@ def trim_conversation(words):   # trim “” and ‘’
             return thou_say
     return thou_say
 
-def script_auto_complete(sent, sent_type_lists):    # sent_type_lists should be [sent_type, nsubj, dobj] calculated by judger.
-    assert (len(sent_type_lists) == 3) == True
-    sent_type = sent_type_lists[0]
-    nsubj = sent_type_lists[1]
-    dobj = sent_type_lists[2]
-    script = ''
-    action_table = {'move': ' MOVE TO: ', 'gain': ' GAIN: ', 'attend': ' ATTEND: ', 'talk': ' TALK TO: ', 
-    'defeat': ' DEFEAT: ', 'say': ' SAY: ', 'fight': ' FIGHT WITH: ', 'kill': ' KILL: '}
-    if sent_type in ['move', 'gain', 'attend']:
-        for token in sent:
-            if token.dep_ == 'nsubj' and token.pos_ == 'NOUN':
-                nsubj = token.text
-        if (dobj != ''):
-            script = nsubj + action_table[sent_type] + dobj
-    elif sent_type in ['talk', 'defeat', 'kill', 'fight']:
-        for token in sent:
-            if token.dep_ == 'dobj' and token.pos_ == 'NOUN':
-                dobj = token.text
-        if (dobj != ''):
-            script = nsubj + action_table[sent_type] + dobj
-    elif sent_type == 'say':
-        dixit = '' # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
-            # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
-        dixit = trim_conversation(sent.text)
-        if dixit != '':
-            script = nsubj + ' SAY: ' + dixit
-    return script
-
-def script_extractor(doc): # extract scripts like information from docs
-    scripts_list = []
-    script =  ''
-    sents = doc.sents # We'll use sentence for basic units
+def script_extractor(doc): # extract scripts-like information from doc
+    scripts = []
+    nsubj = dobj = script = ''
+    sents = doc.sents   # We'll use sentence for basic units
     for sent in sents:
-        sent_type_lists = sent_type_judge(sent)
-        script = script_auto_complete(sent, sent_type_lists)
-        if script != '':
-            scripts_list.append(script)
-    return scripts_list
+        for token in sent:
+            if token.pos_ == 'VERB' and action_classify(token.text) == 'say':   # SAY
+                found_speaker = False
+                for child in token.children:
+                    if child.dep_ == 'nsubj':
+                        nsubj = child.text
+                        found_speaker = True
+                if (found_speaker == False):
+                    nsubj = '作者'
+                dixit = '' # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
+                    # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
+                dixit = trim_conversation(sent.text)
+                script = nsubj + ' SAY: ' + dixit
+                scripts.append(script)
+            elif token.ent_type_ in ['GPE', 'LOC', 'PRODUCT', 'MONEY', 'WORK_OF_ART', 'EVENT']: # MOVE TO/GAIN/ATTEND
+                ent = token.ent_type_
+                dobj = token.text
+                found_sb = False
+                ent_table = {'GPE': ' MOVE TO: ', 'LOC': ' MOVE TO: ', 'PRODUCT': ' GAIN: ', 'MONEY': ' GAIN: ', 
+                'WORK_OF_ART': ' GAIN: ', 'EVENT': ' ATTEND: '}
+                for nbor in token.head.children:  # suppose the depency tree is (token: [GPE])(token.head: {VERB})(some child: <nsubj>)
+                    if nbor.dep_ == 'nsubj':
+                        nsubj = nbor.text
+                        found_sb = True
+                if (found_sb == False):
+                    nsubj = '宋兵乙'
+                script = nsubj + ent_table[ent] + dobj
+                scripts.append(script)
+            elif token.ent_type_ == 'PERSON' and token.dep_ == 'nsubj':
+                action_related = action_classify(token.head.text)
+                if (action_related in ['talk', 'kill', 'fight', 'defeat']):
+                    found_erdos = False
+                    for nbor in token.head.children:
+                        if nbor.dep_ == 'dobj':
+                            dobj = nbor.text
+                            found_erdos = True
+                    if (found_erdos == False):
+                        dobj = '路人甲'
+                    action_table = {'talk': ' TALK TO: ', 'defeat': ' DEFEAT: ', 'fight': ' FIGHT WITH: ', 'kill': ' KILL: '}
+                    script = nsubj + action_table[action_related] + dobj
+                    scripts.append(script)
+    return scripts
 
 # Semantic Search based on sentence transformer
 
@@ -213,21 +187,26 @@ def semantic_search(corpus, queries, result_num): # # Find the closest {result_n
 
 # Test Unit
 def test():
-    txts = persona.read_chapters(persona.shediao)
+    txts = persona.read_chapters(persona.shendiao)
     print('===Finish Reading===\n')
-    book_name = 'shediao'
+    book_name = 'shendiao'
     all_cmds = []
-    for txt in txts:
-        doc = nlp(txt)
-        print('==spaCy NLP done!==\n')
-        cmds = script_extractor(doc)
-        print('==Chapter %d parsed.==\n' %(txts.index(txt)) )
+    txts_num = len(txts)
+    if txts_num >= 6:   # Magic Number!
+        part_num = int(txts_num/6) + 1
+    for i in range(part_num):
+        for p in range(6):
+            txt = txts[min(i*6 + p, txts_num-1)]
+            doc = nlp(txt)
+            print('==spaCy NLP done!==\n')
+            cmds = script_extractor(doc)
+            print('==Chapter %d parsed.==\n' %(txts.index(txt)+1) )
         all_cmds.append(cmds)
-    with open('%s_timeline.txt' %(book_name), 'w+') as file:
-        for cmds in all_cmds:
-            for cmd in cmds:
-                file.write(cmd + '\n')
-            print('==Some part write finished\n')
+        with open('%s_timeline_part%d.txt' %(book_name, i), 'w+') as file:
+            for cmds in all_cmds:
+                for cmd in cmds:
+                    file.write(cmd + '\n')
+                print('==File part%d write finished\n'%(i+1))
     #docs.append(nlp(txt))
     #doc_milestone = list(persona.find_sents_with_specs(docs, ['PERSON', 'LOC', 'GPE', 'EVENT'])[1].values())
     #queries = list(propp_models.values())
