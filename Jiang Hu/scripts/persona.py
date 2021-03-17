@@ -351,19 +351,18 @@ def personality_traits_analysis(book_name, docs, names, model_type):   # docs sh
     name_en = translate(names)
     persoanlity_traits_with_names = {}
     for name in names:
-        wc_with_names = word_cloud(name, docs, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
-        print('===%s Word Cloud Created==='%(name))
-        result = Est_Sularus_oth_Mithas(wc_with_names, model_type)
-        print('===%s Personal Traits Calculated=='%(name))
-        persoanlity_traits_with_names[name] = result
-    with open('%s_char_emotion.txt' %(book_name), 'w+') as file:
-        if model_type == 'hourglass':
-            file.write('Name Pleasantness Attention Sensitivity Aptitude\n')
-        elif model_type == 'big_five':
-            file.write('Name Openness Consientiousness Extraversion Agreebleness Neuroticism\n')
-        elif model_type == 'wuxia':
-            file.write('Name 勇敢 善良 忠诚 聪明 侠义 敏感\n')
-        for name in names:
+        with open('%s_char_emotion.txt' %(name), 'w+') as file:
+            wc_with_names = word_cloud(name, docs, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
+            print('===%s Word Cloud Created==='%(name))
+            result = Est_Sularus_oth_Mithas(wc_with_names, model_type)
+            print('===%s Personal Traits Calculated=='%(name))
+            persoanlity_traits_with_names[name] = result
+            if model_type == 'hourglass':
+                file.write('Name Pleasantness Attention Sensitivity Aptitude\n')
+            elif model_type == 'big_five':
+                file.write('Name Openness Consientiousness Extraversion Agreebleness Neuroticism\n')
+            elif model_type == 'wuxia':
+                file.write('Name 勇敢 善良 忠诚 聪明 侠义 敏感\n')
             file.write("%s " %(name))
             for key in list(persoanlity_traits_with_names[name]):
                 file.write('%.4f ' %(persoanlity_traits_with_names[name][key]) + ' ')
