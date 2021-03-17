@@ -261,12 +261,14 @@ def calc_persona_score(word, wordsets): # transfer all words to a vec then calc 
     score = score / sets_cap
     return score
 
-def general_modelling(word, model_type): # General modelling using word_similarity()
+def general_modelling(word, model_type, bar=0.66): # General modelling using word_similarity()
     wuxia_hex = {'勇敢': 0, '善良': 0, '忠诚': 0, '聪明': 0, '侠义': 0, '敏感': 0}
     if (model_type == 'wuxia'):
         try:
             for key in wuxia_hex:
-                wuxia_hex[key] = word_similarity(key, word)
+                wk = word_similarity(key, word)
+                if (wk > bar):
+                    wuxia_hex[key] = wk
         except:
             return wuxia_hex
     return wuxia_hex
@@ -346,7 +348,7 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
             wuxia_hex[factor] = wuxia_hex[factor] / total_weights
         return wuxia_hex
 
-def personality_traits_analysis(book_name, docs, names, model_type):   # docs shoule be the nlp 
+def personality_traits_analysis(docs, names, model_type):   # docs shoule be the nlp 
     # parsing result of read_chapters(book)
     name_en = translate(names)
     persoanlity_traits_with_names = {}
@@ -365,7 +367,7 @@ def personality_traits_analysis(book_name, docs, names, model_type):   # docs sh
                 file.write('Name 勇敢 善良 忠诚 聪明 侠义 敏感\n')
             file.write("%s " %(name))
             for key in list(persoanlity_traits_with_names[name]):
-                file.write('%.4f ' %(persoanlity_traits_with_names[name][key]) + ' ')
+                file.write('%.6f ' %(persoanlity_traits_with_names[name][key]) + ' ')
             file.write('\n')  
 
 # Part II: Events and Choices slicing
@@ -409,6 +411,6 @@ def test():
         docs.append(nlp(txt))
         print('===Chapter %d spacy NLP done!==='%(txts.index(txt)+1))
     names = list(count_big_names(jinyong_names, docs, 20))
-    personality_traits_analysis('shediao', docs, names, 'wuxia')
+    personality_traits_analysis(docs, names, 'wuxia')
 
 test()
