@@ -266,7 +266,7 @@ def general_modelling(word, model_type): # General modelling using word_similari
     if (model_type == 'wuxia'):
         try:
             for key in wuxia_hex:
-                wuxia_hex = word_similarity(key, word)
+                wuxia_hex[key] = word_similarity(key, word)
         except:
             return wuxia_hex
     return wuxia_hex
@@ -352,7 +352,9 @@ def personality_traits_analysis(book_name, docs, names, model_type):   # docs sh
     persoanlity_traits_with_names = {}
     for name in names:
         wc_with_names = word_cloud(name, docs, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
+        print('===%s Word Cloud Created==='%(name))
         result = Est_Sularus_oth_Mithas(wc_with_names, model_type)
+        print('===%s Personal Traits Calculated=='%(name))
         persoanlity_traits_with_names[name] = result
     with open('%s_char_emotion.txt' %(book_name), 'w+') as file:
         if model_type == 'hourglass':
@@ -406,9 +408,8 @@ def test():
     docs = []
     for txt in txts:
         docs.append(nlp(txt))
-        print('===spacy NLP done!===')
+        print('===Chapter %d spacy NLP done!==='%(txts.index(txt)+1))
     names = list(count_big_names(jinyong_names, docs, 20))
     personality_traits_analysis('shediao', docs, names, 'wuxia')
-    print('===Personal Traits Calculated!===')
 
 test()
