@@ -330,8 +330,8 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
         for key in cloud:
             temp_result = hourglass_light(key)
             if has_cn_sentic(key) == True:
+                total_weights += cloud[key]
                 for factor in hourglass:
-                    total_weights += cloud[key]
                     hourglass[factor] += cloud[key] * temp_result[factor]
         total_weights = max(total_weights, 1)
         for factor in hourglass:
@@ -339,21 +339,21 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
         return hourglass
     elif model_type == 'wuxia':
         for key in cloud:
+            total_weights += cloud[key]
             temp_result = general_modelling(key, model_type)
             for factor in wuxia_hex:
-                total_weights += cloud[key]
                 wuxia_hex[factor] += cloud[key] * temp_result[factor]
-        total_weights = max(total_weights, 1)
-        for factor in wuxia_hex:
-            wuxia_hex[factor] = wuxia_hex[factor] / total_weights
+        #total_weights = max(total_weights, 1)
+        #for factor in wuxia_hex:
+        #    wuxia_hex[factor] = wuxia_hex[factor] / total_weights
         return wuxia_hex
 
-def personality_traits_analysis(docs, names, model_type):   # docs shoule be the nlp 
+def personality_traits_analysis(book_name, docs, names, model_type):   # docs shoule be the nlp 
     # parsing result of read_chapters(book)
     name_en = translate(names)
     persoanlity_traits_with_names = {}
-    for name in names:
-        with open('%s_char_emotion.txt' %(name), 'w+') as file:
+    with open('%s_personal_traits.txt' %(book_name), 'w+') as file:
+        for name in names:
             wc_with_names = word_cloud(name, docs, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
             print('===%s Word Cloud Created==='%(name))
             result = Est_Sularus_oth_Mithas(wc_with_names, model_type)
@@ -411,6 +411,6 @@ def test():
         docs.append(nlp(txt))
         print('===Chapter %d spacy NLP done!==='%(txts.index(txt)+1))
     names = list(count_big_names(jinyong_names, docs, 20))
-    personality_traits_analysis(docs, names, 'wuxia')
+    personality_traits_analysis('shediao', docs, names, 'wuxia')
 
 test()
