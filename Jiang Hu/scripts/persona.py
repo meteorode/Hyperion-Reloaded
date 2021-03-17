@@ -13,6 +13,8 @@ import inspect
 import math
 import numpy as np
 import books
+from sentence_transformers import SentenceTransformer, util
+import torch
 
 spacy.prefer_gpu()  # Using GPU to run programm
 
@@ -24,6 +26,8 @@ sn = SenticNet()
 cn_sn = BabelSenticNet('cn')    # Use SenticNet to analysis.
 
 p = Path('.')   # current Path
+
+embedder = SentenceTransformer('./models/distiluse-base-multilingual-cased')    # Trying use SentenceTransformer to re-calculate word_similarity
 
 jinyong_names = []
 with open('novels/jinyong/person_list.txt', 'r') as file:
@@ -150,6 +154,13 @@ def has_en_sentic(word): # En version
     except:
         return False
 
+def word_similarity(word1, word2):  # Use model.encode() and pytorch_cos_sim() to calc
+    emb1 = embedder.encode(word1)
+    emb2 = embedder.encode(word2)
+    
+    cos_sim = util.pytorch_cos_sim(emb1, emb2).item()   # convert an 1 dimensional tensor to float
+    return cos_sim
+
 def word_vec_similarity(vec1, vec2):    # vec1 and vec2 should be a dict
     v1_values = list(vec1.values())
     v2_values = list(vec2.values())
@@ -250,6 +261,16 @@ def calc_persona_score(word, wordsets): # transfer all words to a vec then calc 
     score = score / sets_cap
     return score
 
+def general_modelling(word, model_type): # General modelling using word_similarity()
+    wuxia_hex = {'勇敢': 0, '善良': 0, '忠诚': 0, '聪明': 0, '侠义': 0, '敏感': 0}
+    if (model_type == 'wuxia'):
+        try:
+            for key in wuxia_hex:
+                wuxia_hex = word_similarity(key, word)
+        except:
+            return wuxia_hex
+    return wuxia_hex
+
 def hourglass_light(word): # Raw Hourglass data calculating from word.
     hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
     try:
@@ -290,6 +311,7 @@ def word_cloud(word, docs, pos_types, dep_types): # return a dict like this {'re
 def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by model_type
     big_five = {'Openness': 0, 'Consientiousness': 0, 'Extraversion': 0, 'Agreebleness': 0, 'Neuroticism': 0}
     hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
+    wuxia_hex = {'勇敢': 0, '善良': 0, '忠诚': 0, '聪明': 0, '侠义': 0, '敏感': 0}
     total_weights = 0 
     if model_type == 'big_five':
         for key in cloud:   # assert key is a word and cloud is a dict
@@ -313,6 +335,16 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
         for factor in hourglass:
             hourglass[factor] = hourglass[factor] / total_weights
         return hourglass
+    elif model_type == 'wuxia':
+        for key in cloud:
+            temp_result = general_modelling(key, model_type)
+            for factor in wuxia_hex:
+                total_weights += cloud[key]
+                wuxia_hex[factor] += cloud[key] * temp_result[factor]
+        total_weights = max(total_weights, 1)
+        for factor in wuxia_hex:
+            wuxia_hex[factor] = wuxia_hex[factor] / total_weights
+        return wuxia_hex
 
 def personality_traits_analysis(book_name, docs, names, model_type):   # docs shoule be the nlp 
     # parsing result of read_chapters(book)
@@ -327,6 +359,8 @@ def personality_traits_analysis(book_name, docs, names, model_type):   # docs sh
             file.write('Name Pleasantness Attention Sensitivity Aptitude\n')
         elif model_type == 'big_five':
             file.write('Name Openness Consientiousness Extraversion Agreebleness Neuroticism\n')
+        elif model_type == 'wuxia':
+            file.write('Name 勇敢 善良 忠诚 聪明 侠义 敏感\n')
         for name in names:
             file.write("%s " %(name))
             for key in list(persoanlity_traits_with_names[name]):
@@ -367,11 +401,14 @@ def eye_tracking(doc, name_set):  # return series like 'PERSON'(supposed to be n
 # Test units here.
 
 def test(): 
-    txts = read_chapters(shediao)
+    txts = read_chapters(books.shediao)
+    print('===Finished books reading!===')
     docs = []
     for txt in txts:
         docs.append(nlp(txt))
+        print('===spacy NLP done!===')
     names = list(count_big_names(jinyong_names, docs, 20))
-    personality_traits_analysis('shediao', docs, names, 'hourglass')
+    personality_traits_analysis('shediao', docs, names, 'wuxia')
+    print('===Personal Traits Calculated!===')
 
-#test()
+test()

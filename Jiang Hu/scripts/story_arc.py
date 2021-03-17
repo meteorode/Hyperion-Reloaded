@@ -209,10 +209,9 @@ def semantic_search(corpus, queries, result_num): # # Find the closest {result_n
         for score, idx in zip(top_results[0], top_results[1]):
             print(corpus[idx], "(Score: {:.4f})".format(score))
 
-def write_script(book_name, slice_length, doc_type):  # Write scipts to files, slice the docs to increase performance
+def write_script(book_name, book_prefix, slice_length, doc_type):  # Write scipts to files, slice the docs to increase performance
     txts = read_chapters(book_name)
     print('===Finish Reading===\n')
-    book_name_text = retrieve_name(book_name)
     chapters_num = len(txts)
     if chapters_num >= slice_length:
         parts_num = int(chapters_num/slice_length) + 1
@@ -230,7 +229,7 @@ def write_script(book_name, slice_length, doc_type):  # Write scipts to files, s
             cmds = script_extractor(doc)
             print('===Chapter %d parsed!===\n' %(txts.index(txt)+1))
             all_cmds.append(cmds)
-        with open('%s_timeline_part%d.txt' %(book_name_text, i), 'w+') as file:
+        with open('%s_timeline_part%d.txt' %(book_prefix, i), 'w+') as file:
             for cmds in all_cmds:
                 for cmd in cmds:
                     file.write(cmd + '\n')
@@ -238,7 +237,7 @@ def write_script(book_name, slice_length, doc_type):  # Write scipts to files, s
 
 # Test Unit
 def test():
-    write_script(books.shediao, 3, 'cn')
+    write_script(books.shendiao, 'shendiao', 3, 'cn')
     #docs.append(nlp(txt))
     #doc_milestone = list(persona.find_sents_with_specs(docs, ['PERSON', 'LOC', 'GPE', 'EVENT'])[1].values())
     #queries = list(propp_models.values())
