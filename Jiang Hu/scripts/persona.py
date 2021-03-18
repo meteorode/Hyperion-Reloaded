@@ -63,8 +63,8 @@ def dict_modify(dic, key, value_modifier=1, value_base=1):  # A general method t
 
 # Basic Statistics methods
 
-def bayesian_average(raw_average, dataset_len, C=666, m=0.5):  # Calc Bayesian average of a distribution [len, avg], with formula: ba = C*m + sum(dic.values())/ (C + len(dic))
-    return (C*m + raw_average * dataset_len) / (C + dataset_len)
+def bayesian_average(raw_average, dataset_len, C=666, m=0.01):  # Calc Bayesian average of a distribution [len, avg], with formula: ba = C*m + sum(dic.values())/ (C + len(dic))
+    return (C * m + raw_average * dataset_len) / (C + dataset_len)
 
 def count_big_names(names, docs, count_num): # Count most common names from docs(not raw texts)
     name_freq = {}
@@ -269,9 +269,8 @@ def general_modelling(word, model_type, bar=0.66): # General modelling using wor
     if (model_type == 'wuxia'):
         try:
             for key in wuxia_hex:
-                wk = word_similarity(key, word)
-                if (wk > bar):
-                    wuxia_hex[key] = wk
+                sims = word_similarity(key, word)
+                wuxia_hex[key] = (max(sims,bar) - bar)/(1.0 - bar)
         except:
             return wuxia_hex
     return wuxia_hex
@@ -345,11 +344,9 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
     elif model_type == 'wuxia':
         for key in cloud:
             temp_result = general_modelling(key, model_type)
-            if (temp_result > 0):   # drop all zero data.
-                total_weights += cloud[key]
-                for factor in wuxia_hex:
-                    wuxia_hex[factor] += cloud[key] * temp_result[factor]
-        total_weights = max(total_weights, 1)
+            total_weights += cloud[key]
+            for factor in temp_result:
+                wuxia_hex[factor] += cloud[key] * temp_result[factor]
         for factor in wuxia_hex:
             wuxia_hex[factor] = wuxia_hex[factor] / total_weights
             wuxia_hex[factor] = bayesian_average(wuxia_hex[factor], total_weights)
