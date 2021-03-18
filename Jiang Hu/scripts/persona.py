@@ -264,13 +264,17 @@ def calc_persona_score(word, wordsets): # transfer all words to a vec then calc 
     score = score / sets_cap
     return score
 
-def general_modelling(word, model_type, bar=0.66): # General modelling using word_similarity()
+def general_modelling(word, model_type, bar=0.33): # General modelling using word_similarity()
     wuxia_hex = {'勇敢': 0, '善良': 0, '忠诚': 0, '聪明': 0, '侠义': 0, '敏感': 0}
+    wuxia_opposite = ['怯懦', '邪恶', '背叛', '愚蠢', '卑鄙', '粗心']
     if (model_type == 'wuxia'):
         try:
             for key in wuxia_hex:
                 sims = word_similarity(key, word)
-                wuxia_hex[key] = (max(sims,bar) - bar)/(1.0 - bar)
+                index = list(wuxia_hex.keys()).index(key)
+                opps = word_similarity(wuxia_opposite[index], word)
+                meaning = sims - opps # [-1, 1] theoretically, (-0.33, 0.33) mostly
+                wuxia_hex[key] = (meaning + bar)/(0.5 + bar)
         except:
             return wuxia_hex
     return wuxia_hex
@@ -301,15 +305,18 @@ def translate(cn_words):    # _TO_BE_UPDATED_
     en_words = cn_words
     return en_words
 
-def word_cloud(word, docs, pos_types, dep_types): # return a dict like this {'related_word_1': weight, ...}
+def word_cloud(words, docs, pos_types, dep_types): # return a nested dict like this {'word1': {'related_word_1': weight, ...}, ... }
     cloud = {}
+    for word in words:
+        cloud[word] = {}
     for doc in docs:
         for token in doc:
-            if word in token.text:
-                for leaf in token.sent:
-                    dis = calc_distance(token, leaf)
-                    if leaf.pos_ in pos_types or leaf.dep_ in dep_types:
-                        dict_modify(cloud, leaf.text, dis, dis)
+            for word in words:
+                if word in token.text:
+                    for leaf in token.sent:
+                        dis = calc_distance(token, leaf)
+                        if leaf.pos_ in pos_types or leaf.dep_ in dep_types:
+                            dict_modify(cloud[word], leaf.text, dis, dis)
     return cloud
 
 def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by model_type
@@ -357,10 +364,12 @@ def personality_traits_analysis(book_name, docs, names, model_type):   # docs sh
     name_en = translate(names)
     persoanlity_traits_with_names = {}
     with open('%s_personal_traits.txt' %(book_name), 'w+') as file:
+        wc_with_names = word_cloud(names, docs, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
+        print("===Names with Clouds Generated===")
         for name in names:
-            wc_with_names = word_cloud(name, docs, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
+            wc_with_name = wc_with_names[name]
             print('===%s Word Cloud Created==='%(name))
-            result = Est_Sularus_oth_Mithas(wc_with_names, model_type)
+            result = Est_Sularus_oth_Mithas(wc_with_name, model_type)
             print('===%s Personal Traits Calculated=='%(name))
             persoanlity_traits_with_names[name] = result
             print(result)
