@@ -321,7 +321,7 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
         for key in cloud:   # assert key is a word and cloud is a dict
             temp_result = ocean_horn(key)
             if has_cn_sentic(key) == True:
-                total_weights += cloud[key]
+                total_weights += 1  # Shoule be meaningful while = 1, means equitity of each word
                 for factor in big_five:
                     big_five[factor] += cloud[key] * temp_result[factor]
         total_weights = max(total_weights, 1)
@@ -333,7 +333,7 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
         for key in cloud:
             temp_result = hourglass_light(key)
             if has_cn_sentic(key) == True:
-                total_weights += cloud[key]
+                total_weights += 1
                 for factor in hourglass:
                     hourglass[factor] += cloud[key] * temp_result[factor]
         total_weights = max(total_weights, 1)
@@ -344,7 +344,7 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
     elif model_type == 'wuxia':
         for key in cloud:
             temp_result = general_modelling(key, model_type)
-            total_weights += cloud[key]
+            total_weights += 1
             for factor in temp_result:
                 wuxia_hex[factor] += cloud[key] * temp_result[factor]
         for factor in wuxia_hex:
