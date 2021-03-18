@@ -63,6 +63,9 @@ def dict_modify(dic, key, value_modifier=1, value_base=1):  # A general method t
 
 # Basic Statistics methods
 
+def bayesian_average(raw_average, dataset_len, C=666, m=0.5):  # Calc Bayesian average of a distribution [len, avg], with formula: ba = C*m + sum(dic.values())/ (C + len(dic))
+    return (C*m + raw_average * dataset_len) / (C + dataset_len)
+
 def count_big_names(names, docs, count_num): # Count most common names from docs(not raw texts)
     name_freq = {}
     for doc in docs:
@@ -325,6 +328,7 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
         total_weights = max(total_weights, 1)
         for factor in big_five:
             big_five[factor] = big_five[factor] / total_weights
+            big_five[factor] = bayesian_average(big_five[factor], total_weights, m=0.42)
         return big_five
     elif model_type == 'hourglass':
         for key in cloud:
@@ -336,16 +340,19 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
         total_weights = max(total_weights, 1)
         for factor in hourglass:
             hourglass[factor] = hourglass[factor] / total_weights
+            hourglass[factor] = bayesian_average(hourglass[factor], total_weights, m=0.1)
         return hourglass
     elif model_type == 'wuxia':
         for key in cloud:
-            total_weights += cloud[key]
             temp_result = general_modelling(key, model_type)
-            for factor in wuxia_hex:
-                wuxia_hex[factor] += cloud[key] * temp_result[factor]
-        #total_weights = max(total_weights, 1)
-        #for factor in wuxia_hex:
-        #    wuxia_hex[factor] = wuxia_hex[factor] / total_weights
+            if (temp_result > 0):   # drop all zero data.
+                total_weights += cloud[key]
+                for factor in wuxia_hex:
+                    wuxia_hex[factor] += cloud[key] * temp_result[factor]
+        total_weights = max(total_weights, 1)
+        for factor in wuxia_hex:
+            wuxia_hex[factor] = wuxia_hex[factor] / total_weights
+            wuxia_hex[factor] = bayesian_average(wuxia_hex[factor], total_weights)
         return wuxia_hex
 
 def personality_traits_analysis(book_name, docs, names, model_type):   # docs shoule be the nlp 
@@ -359,6 +366,7 @@ def personality_traits_analysis(book_name, docs, names, model_type):   # docs sh
             result = Est_Sularus_oth_Mithas(wc_with_names, model_type)
             print('===%s Personal Traits Calculated=='%(name))
             persoanlity_traits_with_names[name] = result
+            print(result)
             if model_type == 'hourglass':
                 file.write('Name Pleasantness Attention Sensitivity Aptitude\n')
             elif model_type == 'big_five':
