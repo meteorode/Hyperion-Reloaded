@@ -276,7 +276,7 @@ def general_modelling(word, model_type, bar=0.2): # General modelling using word
             if (meaning >= bar):    # Likely to be in hex.
                 wuxia_hex[key] = sims
             elif (meaning <= (0-bar)):  # Likely to be the opposite
-                wuxia_hex[key] = 0
+                wuxia_hex[key] = -opps/2
             else:   # In the midele
                 wuxia_hex[key] = (meaning + bar)/ (2 * bar)
     return wuxia_hex
