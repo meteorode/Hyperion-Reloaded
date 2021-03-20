@@ -264,7 +264,7 @@ def calc_persona_score(word, wordsets): # transfer all words to a vec then calc 
     score = score / sets_cap
     return score
 
-def general_modelling(word, model_type, bar=0.33): # General modelling using word_similarity()
+def general_modelling(word, model_type, bar=0.2): # General modelling using word_similarity()
     wuxia_hex = {'勇敢': 0, '善良': 0, '忠诚': 0, '聪明': 0, '侠义': 0, '敏感': 0}
     wuxia_opposite = ['怯懦', '邪恶', '背叛', '愚蠢', '卑鄙', '粗心']
     if (model_type == 'wuxia'):
@@ -273,7 +273,12 @@ def general_modelling(word, model_type, bar=0.33): # General modelling using wor
             index = list(wuxia_hex.keys()).index(key)
             opps = word_similarity(wuxia_opposite[index], word)
             meaning = sims - opps # [-1, 1] theoretically, (-0.33, 0.33) mostly
-            wuxia_hex[key] = (meaning + bar)/(0.5 + bar)
+            if (meaning >= bar):    # Likely to be in hex.
+                wuxia_hex[key] = sims
+            elif (meaning <= (0-bar)):  # Likely to be the opposite
+                wuxia_hex[key] = 0
+            else:   # In the midele
+                wuxia_hex[key] = (meaning + bar)/ (2 * bar)
     return wuxia_hex
 
 def hourglass_light(word): # Raw Hourglass data calculating from word.
@@ -302,7 +307,7 @@ def translate(cn_words):    # _TO_BE_UPDATED_
     en_words = cn_words
     return en_words
 
-def word_cloud(words, docs, pos_types, dep_types, cap=999): # return a nested dict like this {'word1': {'related_word_1': weight, ...}, ... }
+def word_cloud(words, docs, pos_types, dep_types, cap=1024): # return a nested dict like this {'word1': {'related_word_1': weight, ...}, ... }
     clouds = {}
     for word in words:
         clouds[word] = {}
@@ -315,8 +320,10 @@ def word_cloud(words, docs, pos_types, dep_types, cap=999): # return a nested di
                         if leaf.pos_ in pos_types or leaf.dep_ in dep_types:
                             dict_modify(clouds[word], leaf.text, dis, dis)
     for cloud in clouds:
+        new_cap = max(len(clouds[cloud])/10, cap)
         cloud_tuple = sorted(clouds[cloud].items(), key=lambda kv: kv[1], reverse=True)
-        new_cloud = dict(cloud_tuple[:min(len(cloud_tuple), cap)])
+        new_cloud = dict(cloud_tuple[:min(len(cloud_tuple), new_cap)])
+        print(len(new_cloud))
         clouds[cloud] = new_cloud
     return clouds
 
@@ -361,7 +368,7 @@ def personality_traits_analysis(book_name, docs, names, model_type):   # docs sh
     # parsing result of read_chapters(book)
     name_en = translate(names)
     persoanlity_traits_with_names = {}
-    wc_with_names = word_cloud(names, docs, ['ADJ', 'VERB'], ['amod', 'dobj', 'pobj'])
+    wc_with_names = word_cloud(names, docs, ['ADJ', 'VERB', 'ROOT', 'VERB|ROOT'], ['amod', 'dobj', 'pobj'])
     print("===Names with Clouds Generated===")
     for name in names:
         wc_with_name = wc_with_names[name]
