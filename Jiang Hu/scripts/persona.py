@@ -63,7 +63,7 @@ def dict_modify(dic, key, value_modifier=1, value_base=1):  # A general method t
 
 # Basic Statistics methods
 
-def bayesian_average(raw_average, dataset_len, C=666, m=0.01):  # Calc Bayesian average of a distribution [len, avg], with formula: ba = C*m + sum(dic.values())/ (C + len(dic))
+def bayesian_average(raw_average, dataset_len, C=666, m=0.333):  # Calc Bayesian average of a distribution [len, avg], with formula: ba = C*m + sum(dic.values())/ (C + len(dic))
     return (C * m + raw_average * dataset_len) / (C + dataset_len)
 
 def count_big_names(names, docs, count_num): # Count most common names from docs(not raw texts)
@@ -268,15 +268,12 @@ def general_modelling(word, model_type, bar=0.33): # General modelling using wor
     wuxia_hex = {'勇敢': 0, '善良': 0, '忠诚': 0, '聪明': 0, '侠义': 0, '敏感': 0}
     wuxia_opposite = ['怯懦', '邪恶', '背叛', '愚蠢', '卑鄙', '粗心']
     if (model_type == 'wuxia'):
-        try:
-            for key in wuxia_hex:
-                sims = word_similarity(key, word)
-                index = list(wuxia_hex.keys()).index(key)
-                opps = word_similarity(wuxia_opposite[index], word)
-                meaning = sims - opps # [-1, 1] theoretically, (-0.33, 0.33) mostly
-                wuxia_hex[key] = (meaning + bar)/(0.5 + bar)
-        except:
-            return wuxia_hex
+        for key in wuxia_hex:
+            sims = word_similarity(key, word)
+            index = list(wuxia_hex.keys()).index(key)
+            opps = word_similarity(wuxia_opposite[index], word)
+            meaning = sims - opps # [-1, 1] theoretically, (-0.33, 0.33) mostly
+            wuxia_hex[key] = (meaning + bar)/(0.5 + bar)
     return wuxia_hex
 
 def hourglass_light(word): # Raw Hourglass data calculating from word.
@@ -305,10 +302,10 @@ def translate(cn_words):    # _TO_BE_UPDATED_
     en_words = cn_words
     return en_words
 
-def word_cloud(words, docs, pos_types, dep_types): # return a nested dict like this {'word1': {'related_word_1': weight, ...}, ... }
-    cloud = {}
+def word_cloud(words, docs, pos_types, dep_types, cap=999): # return a nested dict like this {'word1': {'related_word_1': weight, ...}, ... }
+    clouds = {}
     for word in words:
-        cloud[word] = {}
+        clouds[word] = {}
     for doc in docs:
         for token in doc:
             for word in words:
@@ -316,22 +313,25 @@ def word_cloud(words, docs, pos_types, dep_types): # return a nested dict like t
                     for leaf in token.sent:
                         dis = calc_distance(token, leaf)
                         if leaf.pos_ in pos_types or leaf.dep_ in dep_types:
-                            dict_modify(cloud[word], leaf.text, dis, dis)
-    return cloud
+                            dict_modify(clouds[word], leaf.text, dis, dis)
+    for cloud in clouds:
+        cloud_tuple = sorted(clouds[cloud].items(), key=lambda kv: kv[1], reverse=True)
+        new_cloud = dict(cloud_tuple[:min(len(cloud_tuple), cap)])
+        clouds[cloud] = new_cloud
+    return clouds
 
 def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by model_type
     big_five = {'Openness': 0, 'Consientiousness': 0, 'Extraversion': 0, 'Agreebleness': 0, 'Neuroticism': 0}
     hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
     wuxia_hex = {'勇敢': 0, '善良': 0, '忠诚': 0, '聪明': 0, '侠义': 0, '敏感': 0}
-    total_weights = 0 
+    total_weights = 0
     if model_type == 'big_five':
         for key in cloud:   # assert key is a word and cloud is a dict
             temp_result = ocean_horn(key)
             if has_cn_sentic(key) == True:
-                total_weights += 1  # Shoule be meaningful while = 1, means equitity of each word
+                total_weights += cloud[key]  # Shoule be meaningful while = 1, means equitity of each word
                 for factor in big_five:
                     big_five[factor] += cloud[key] * temp_result[factor]
-        total_weights = max(total_weights, 1)
         for factor in big_five:
             big_five[factor] = big_five[factor] / total_weights
             big_five[factor] = bayesian_average(big_five[factor], total_weights, m=0.42)
@@ -340,49 +340,51 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
         for key in cloud:
             temp_result = hourglass_light(key)
             if has_cn_sentic(key) == True:
-                total_weights += 1
+                total_weights += cloud[key]
                 for factor in hourglass:
                     hourglass[factor] += cloud[key] * temp_result[factor]
-        total_weights = max(total_weights, 1)
         for factor in hourglass:
             hourglass[factor] = hourglass[factor] / total_weights
             hourglass[factor] = bayesian_average(hourglass[factor], total_weights, m=0.1)
         return hourglass
     elif model_type == 'wuxia':
         for key in cloud:
-            temp_result = general_modelling(key, model_type)
-            total_weights += 1
-            for factor in temp_result:
-                wuxia_hex[factor] += cloud[key] * temp_result[factor]
+            total_weights += cloud[key]
+            for factor in wuxia_hex:
+                wuxia_hex[factor] += cloud[key] * general_modelling(key, model_type)[factor]
         for factor in wuxia_hex:
             wuxia_hex[factor] = wuxia_hex[factor] / total_weights
-            wuxia_hex[factor] = bayesian_average(wuxia_hex[factor], total_weights)
+            #wuxia_hex[factor] = bayesian_average(wuxia_hex[factor], total_weights)
         return wuxia_hex
 
 def personality_traits_analysis(book_name, docs, names, model_type):   # docs shoule be the nlp 
     # parsing result of read_chapters(book)
     name_en = translate(names)
     persoanlity_traits_with_names = {}
+    wc_with_names = word_cloud(names, docs, ['ADJ', 'VERB'], ['amod', 'dobj', 'pobj'])
+    print("===Names with Clouds Generated===")
+    for name in names:
+        wc_with_name = wc_with_names[name]
+        print('===%s Word Cloud Created==='%(name))
+        result = Est_Sularus_oth_Mithas(wc_with_name, model_type)
+        print('===%s Personal Traits Calculated=='%(name))
+        print(result)
+        persoanlity_traits_with_names[name] = result
+    return persoanlity_traits_with_names
+
+def write_parsing_result(book_name, result_as_dict, model_type):
     with open('%s_personal_traits.txt' %(book_name), 'w+') as file:
-        wc_with_names = word_cloud(names, docs, ['ADJ', 'NOUN', 'VERB'], ['amod', 'dobj', 'pobj'])
-        print("===Names with Clouds Generated===")
-        for name in names:
-            wc_with_name = wc_with_names[name]
-            print('===%s Word Cloud Created==='%(name))
-            result = Est_Sularus_oth_Mithas(wc_with_name, model_type)
-            print('===%s Personal Traits Calculated=='%(name))
-            persoanlity_traits_with_names[name] = result
-            print(result)
-            if model_type == 'hourglass':
-                file.write('Name Pleasantness Attention Sensitivity Aptitude\n')
-            elif model_type == 'big_five':
-                file.write('Name Openness Consientiousness Extraversion Agreebleness Neuroticism\n')
-            elif model_type == 'wuxia':
-                file.write('Name 勇敢 善良 忠诚 聪明 侠义 敏感\n')
-            file.write("%s " %(name))
-            for key in list(persoanlity_traits_with_names[name]):
-                file.write('%.6f ' %(persoanlity_traits_with_names[name][key]) + ' ')
-            file.write('\n')  
+        if model_type == 'hourglass':
+            file.write('Name Pleasantness Attention Sensitivity Aptitude\n')
+        elif model_type == 'big_five':
+            file.write('Name Openness Consientiousness Extraversion Agreebleness Neuroticism\n')
+        elif model_type == 'wuxia':
+            file.write('Name 勇敢 善良 忠诚 聪明 侠义 敏感\n')
+        for rk in result_as_dict:
+            file.write(rk + ' ')
+            for key in rk:
+                file.write('%.6f ' %(rk[key]) + ' ')
+        file.write('\n')  
 
 # Part II: Events and Choices slicing
 
@@ -418,13 +420,15 @@ def eye_tracking(doc, name_set):  # return series like 'PERSON'(supposed to be n
 # Test units here.
 
 def test(): 
-    txts = read_chapters(books.shediao)
+    txts = read_chapters(books.shendiao)
     print('===Finished books reading!===')
     docs = []
     for txt in txts:
         docs.append(nlp(txt))
         print('===Chapter %d spacy NLP done!==='%(txts.index(txt)+1))
     names = list(count_big_names(jinyong_names, docs, 20))
-    personality_traits_analysis('shediao', docs, names, 'wuxia')
+    #names = ['杨过', '丘处机']
+    result = personality_traits_analysis('shendiao', docs, names, 'wuxia')
+    write_parsing_result('shendiao', result, 'wuxia')
 
 test()
