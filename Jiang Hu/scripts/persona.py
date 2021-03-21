@@ -66,18 +66,29 @@ def dict_modify(dic, key, value_modifier=1, value_base=1):  # A general method t
 def bayesian_average(raw_average, dataset_len, C=666, m=0.333):  # Calc Bayesian average of a distribution [len, avg], with formula: ba = C*m + sum(dic.values())/ (C + len(dic))
     return (C * m + raw_average * dataset_len) / (C + dataset_len)
 
-def count_big_names(names, docs, count_num): # Count most common names from docs(not raw texts)
+def count_big_names(names, docs, count_num, sent_cap=1024): # Count most common names from docs(not raw texts), return sents of them
     name_freq = {}
+    sents = {}
+    for name in names:
+        sents[name] = []
     for doc in docs:
         for name in names:
             for token in doc:
                 if name in token.text:
+                    sents[name].append(token.sent.text)
                     dict_modify(name_freq, name)
     name_tuple = sorted(name_freq.items(), key=lambda kv: kv[1], reverse=True)
+    for name in names:
+        sents_with_name = sents[name][:min(sent_cap, len(sents[name]))]
+        sents[name] = sents_with_name
     if len(name_tuple) >= count_num:
-        return dict(name_tuple[:count_num])
+        big_names = dict(name_tuple[:count_num])
     else:
-        return dict(name_tuple)
+        big_names = dict(name_tuple)
+    name_with_result = {}
+    for name in big_names:
+        name_with_result[name] = sents[name]
+    return name_with_result # a dict like {name: [sent1, ... sent2]}
 
 def count_attrs(doc, attr_type):
     entities = {}
@@ -264,9 +275,30 @@ def calc_persona_score(word, wordsets): # transfer all words to a vec then calc 
     score = score / sets_cap
     return score
 
-def general_modelling(word, model_type, bar=0.2): # General modelling using word_similarity()
-    wuxia_hex = {'勇敢': 0, '善良': 0, '忠诚': 0, '聪明': 0, '侠义': 0, '敏感': 0}
-    wuxia_opposite = ['怯懦', '邪恶', '背叛', '愚蠢', '卑鄙', '粗心']
+typical_wuxia_sents = {
+    '勇敢': '乔峰跃入院子，大声喝道：“哪一个先来决一死战！”群雄见他神威凛凛，一时无人胆敢上前。乔峰喝道：“你们不动手，我先动手了！”',
+    '善良': '善良',
+    '深情': '深情',
+    '聪明': '聪明',
+    '侠义': '侠义',
+    '潇洒': '“我不知道，就算要死，又怎能不看蝴蝶？”',
+    '偏执': '偏执',
+    '脆弱': '脆弱'
+}
+
+Wuxianess = {'勇敢': 0, '善良': 0, '深情': 0, '聪明': 0, '侠义': 0, '潇洒': 0, '偏执':0, '脆弱': 0}
+
+def sentence_modelling(sent, model_type, bar=0.67):  # Using sentece to compare instead of a single word.
+    wuxia_octagon = Wuxianess
+    if (model_type == 'wuxia'):
+        for key in wuxia_octagon:
+            sims = word_similarity(sent, typical_wuxia_sents[key])
+            wuxia_octagon[key] = sims
+    return wuxia_octagon    # __TO_BE_UPDATED__
+
+def general_modelling(word, model_type, bar=0.1): # General modelling using word_similarity()
+    wuxia_hex = {'勇敢': 0, '善良': 0, '深情': 0, '聪明': 0, '侠义': 0, '脆弱': 0}
+    wuxia_opposite = ['怯懦', '邪恶', '冷漠', '愚蠢', '卑鄙', '坚强']
     if (model_type == 'wuxia'):
         for key in wuxia_hex:
             sims = word_similarity(key, word)
@@ -305,7 +337,7 @@ def ocean_horn(word): # Big Five Personalities Model, Aka O.C.E.A.N(Openness, Co
 
 def translate(cn_words):    # _TO_BE_UPDATED_
     en_words = cn_words
-    return en_words
+    return en_words  
 
 def word_cloud(words, docs, pos_types, dep_types, cap=1024): # return a nested dict like this {'word1': {'related_word_1': weight, ...}, ... }
     clouds = {}
@@ -320,17 +352,16 @@ def word_cloud(words, docs, pos_types, dep_types, cap=1024): # return a nested d
                         if leaf.pos_ in pos_types or leaf.dep_ in dep_types:
                             dict_modify(clouds[word], leaf.text, dis, dis)
     for cloud in clouds:
-        new_cap = max(len(clouds[cloud])/10, cap)
+        new_cap = max(int(len(clouds[cloud])/10), cap)
         cloud_tuple = sorted(clouds[cloud].items(), key=lambda kv: kv[1], reverse=True)
         new_cloud = dict(cloud_tuple[:min(len(cloud_tuple), new_cap)])
-        print(len(new_cloud))
         clouds[cloud] = new_cloud
     return clouds
 
 def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by model_type
     big_five = {'Openness': 0, 'Consientiousness': 0, 'Extraversion': 0, 'Agreebleness': 0, 'Neuroticism': 0}
     hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
-    wuxia_hex = {'勇敢': 0, '善良': 0, '忠诚': 0, '聪明': 0, '侠义': 0, '敏感': 0}
+    wuxia_hex = {'勇敢': 0, '善良': 0, '深情': 0, '聪明': 0, '侠义': 0, '脆弱': 0}
     total_weights = 0
     if model_type == 'big_five':
         for key in cloud:   # assert key is a word and cloud is a dict
@@ -386,11 +417,12 @@ def write_parsing_result(book_name, result_as_dict, model_type):
         elif model_type == 'big_five':
             file.write('Name Openness Consientiousness Extraversion Agreebleness Neuroticism\n')
         elif model_type == 'wuxia':
-            file.write('Name 勇敢 善良 忠诚 聪明 侠义 敏感\n')
-        for rk in result_as_dict:
-            file.write(rk + ' ')
-            for key in rk:
-                file.write('%.6f ' %(rk[key]) + ' ')
+            file.write('Name 勇敢 善良 深情 聪明 侠义 脆弱\n')
+        for name in result_as_dict:
+            file.write(name + ' ')
+            pr = result_as_dict[name]
+            for key in pr:
+                file.write('%.6f ' %(pr[key]) + ' ')
         file.write('\n')  
 
 # Part II: Events and Choices slicing
@@ -433,9 +465,19 @@ def test():
     for txt in txts:
         docs.append(nlp(txt))
         print('===Chapter %d spacy NLP done!==='%(txts.index(txt)+1))
-    names = list(count_big_names(jinyong_names, docs, 20))
+    names_with_sents = count_big_names(jinyong_names, docs, 1)
+    for name in names_with_sents:
+        wuxia_octa = Wuxianess
+        name_with_sent = names_with_sents[name]
+        sent_len = len(name_with_sent)
+        for sent in name_with_sent:
+            tmp_result = sentence_modelling(sent, 'wuxia')
+            for key in tmp_result:
+                wuxia_octa[key] += tmp_result[key] / sent_len
+        print(name, wuxia_octa)
+    #print(names_with_sents)
     #names = ['杨过', '丘处机']
-    result = personality_traits_analysis('shendiao', docs, names, 'wuxia')
-    write_parsing_result('shendiao', result, 'wuxia')
+    #result = personality_traits_analysis('shendiao', docs, names, 'wuxia')
+    #write_parsing_result('shendiao', result, 'wuxia')
 
 test()
