@@ -15,6 +15,7 @@ import numpy as np
 import books
 from sentence_transformers import SentenceTransformer, util
 import torch
+import json
 
 spacy.prefer_gpu()  # Using GPU to run programm
 
@@ -275,17 +276,15 @@ def calc_persona_score(word, wordsets): # transfer all words to a vec then calc 
     score = score / sets_cap
     return score
 
-typical_wuxia_sents = {
-    '勇敢': '乔峰跃入院子，大声喝道：“哪一个先来决一死战！”群雄见他神威凛凛，一时无人胆敢上前。乔峰喝道：“你们不动手，我先动手了！”',
-    '善良': '院外一名铁骑见血兴起，一伸手、已抓住院中的一只小狗和一笼鸡雏，一扬手，齐向火堆上投来。袁寒亭象很满意，在一边笑道：“兄弟这可算是鸡犬不留了。” 众人也没想到那少年会忽然大怒，他怒叱道：“你！”一拍椅背，人已再度腾空而起',
-    '深情': '她慢慢站起身来，柔情无限的瞧着胡斐，从药囊中取出两种药粉，替他敷在手背，又取出一粒黄色药丸，塞在他口中，低低地道：“我师父说中了这三种剧毒，无药可治，因为他只道世上没有一个医生，肯不要自己的性命来救活病人。大哥，他不知我……我会待你这样……”',
-    '聪明': '”周伯通缓缓的道：“这位姑娘如此聪明，可别像她母亲一般短寿！那日黄夫人借了我经书去看，只看了两遍，可是她已一字不漏的记住啦。她和我一分手，就默写了出来给她丈夫。”郭靖不禁骇然，隔了半晌才道：“黄夫人不懂经中意义，却能从头至尾的记住，世：上怎能有如此聪明之人？”',
-    '侠义': '张无忌摇头道：“但教我有一口气在，不容你们杀明教一人。” 殷梨亭道：“那我可先得杀了你！” 张无忌喷出一口鲜血，神智昏迷，心情激荡，轻轻的道：“殷六叔，你杀了我罢！”',
-    '潇洒': '“我不知道，就算要死，又怎能不看蝴蝶？”',
-    '偏执': '”范遥眉头一皱，说道：“郡主，世上不如意事十居八九，既已如此，也是勉强不来了。” 赵敏道：“我偏要勉强。”',
-    '脆弱': '萧如似不信地回看了文翰林一眼。那一眼没有愤恨，没有怨怒，只有为这人世间所有不肯放手、乃至无所不用其极的人们的一抹哀叹。只听她空中轻飘飘地道：“翰林，我‘田横’一法已施，禁忌之果立报，就是不死，此生也已如一平常之无缚鸡之力的女子，你——一定要杀我吗？” 说着，她一口鲜血在空中喷出，如海棠一笑的绝艳，人却有如石坠，已经昏死，向崖下重重地投了下去。',
-    '寂寞': '夜，春夜，江南的春雨密如离愁。'
-}
+def read_model_config(filename, model_type='wuxia'):    # Read model config like wuxia{}, big_five{} and others from file.
+    with open(filename) as file:
+        models = json.load(file)   # A list of dict
+        for model in models:
+            if model['model_name'] == model_type:
+                del model['model_name']
+                return model    # slice model_name
+
+typical_wuxia_sents = read_model_config('./data/model.json')
 
 Wuxianess = {}
 for k in typical_wuxia_sents:
@@ -295,7 +294,10 @@ def sentence_modelling(sent, model_type, bar=0.67):  # Using sentece to compare 
     wuxia_octagon = Wuxianess
     if (model_type == 'wuxia'):
         for key in wuxia_octagon:
-            sims = word_similarity(sent, typical_wuxia_sents[key])
+            s_len = len(typical_wuxia_sents[key])
+            sims = 0.0
+            for s in typical_wuxia_sents[key]:
+                sims += word_similarity(sent, s) / s_len
             wuxia_octagon[key] = sims
     return wuxia_octagon    # __TO_BE_UPDATED__
 
