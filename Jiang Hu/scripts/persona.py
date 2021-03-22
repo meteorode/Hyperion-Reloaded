@@ -277,16 +277,19 @@ def calc_persona_score(word, wordsets): # transfer all words to a vec then calc 
 
 typical_wuxia_sents = {
     '勇敢': '乔峰跃入院子，大声喝道：“哪一个先来决一死战！”群雄见他神威凛凛，一时无人胆敢上前。乔峰喝道：“你们不动手，我先动手了！”',
-    '善良': '善良',
+    '善良': '院外一名铁骑见血兴起，一伸手、已抓住院中的一只小狗和一笼鸡雏，一扬手，齐向火堆上投来。袁寒亭象很满意，在一边笑道：“兄弟这可算是鸡犬不留了。” 众人也没想到那少年会忽然大怒，他怒叱道：“你！”一拍椅背，人已再度腾空而起',
     '深情': '她慢慢站起身来，柔情无限的瞧着胡斐，从药囊中取出两种药粉，替他敷在手背，又取出一粒黄色药丸，塞在他口中，低低地道：“我师父说中了这三种剧毒，无药可治，因为他只道世上没有一个医生，肯不要自己的性命来救活病人。大哥，他不知我……我会待你这样……”',
-    '聪明': '聪明',
-    '侠义': '侠义',
+    '聪明': '”周伯通缓缓的道：“这位姑娘如此聪明，可别像她母亲一般短寿！那日黄夫人借了我经书去看，只看了两遍，可是她已一字不漏的记住啦。她和我一分手，就默写了出来给她丈夫。”郭靖不禁骇然，隔了半晌才道：“黄夫人不懂经中意义，却能从头至尾的记住，世：上怎能有如此聪明之人？”',
+    '侠义': '张无忌摇头道：“但教我有一口气在，不容你们杀明教一人。” 殷梨亭道：“那我可先得杀了你！” 张无忌喷出一口鲜血，神智昏迷，心情激荡，轻轻的道：“殷六叔，你杀了我罢！”',
     '潇洒': '“我不知道，就算要死，又怎能不看蝴蝶？”',
     '偏执': '”范遥眉头一皱，说道：“郡主，世上不如意事十居八九，既已如此，也是勉强不来了。” 赵敏道：“我偏要勉强。”',
-    '脆弱': '脆弱'
+    '脆弱': '萧如似不信地回看了文翰林一眼。那一眼没有愤恨，没有怨怒，只有为这人世间所有不肯放手、乃至无所不用其极的人们的一抹哀叹。只听她空中轻飘飘地道：“翰林，我‘田横’一法已施，禁忌之果立报，就是不死，此生也已如一平常之无缚鸡之力的女子，你——一定要杀我吗？” 说着，她一口鲜血在空中喷出，如海棠一笑的绝艳，人却有如石坠，已经昏死，向崖下重重地投了下去。',
+    '寂寞': '夜，春夜，江南的春雨密如离愁。'
 }
 
-Wuxianess = {'勇敢': 0, '善良': 0, '深情': 0, '聪明': 0, '侠义': 0, '潇洒': 0, '偏执':0, '脆弱': 0}
+Wuxianess = {}
+for k in typical_wuxia_sents:
+    Wuxianess[k] = 0
 
 def sentence_modelling(sent, model_type, bar=0.67):  # Using sentece to compare instead of a single word.
     wuxia_octagon = Wuxianess
@@ -297,8 +300,8 @@ def sentence_modelling(sent, model_type, bar=0.67):  # Using sentece to compare 
     return wuxia_octagon    # __TO_BE_UPDATED__
 
 def general_modelling(word, model_type, bar=0.1): # General modelling using word_similarity()
-    wuxia_hex = {'勇敢': 0, '善良': 0, '深情': 0, '聪明': 0, '侠义': 0, '脆弱': 0}
-    wuxia_opposite = ['怯懦', '邪恶', '冷漠', '愚蠢', '卑鄙', '坚强']
+    wuxia_hex = Wuxianess
+    wuxia_opposite = ['怯懦', '邪恶', '冷漠', '愚蠢', '卑鄙', '拘谨', '灵活', '坚强', '喧闹']
     if (model_type == 'wuxia'):
         for key in wuxia_hex:
             sims = word_similarity(key, word)
@@ -358,10 +361,10 @@ def word_cloud(words, docs, pos_types, dep_types, cap=1024): # return a nested d
         clouds[cloud] = new_cloud
     return clouds
 
-def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by model_type
+def Est_Sularus_oth_Mithas(cloud, model_type, sents=[], mining_type='cloud'): # return a normalized dict by model_type
     big_five = {'Openness': 0, 'Consientiousness': 0, 'Extraversion': 0, 'Agreebleness': 0, 'Neuroticism': 0}
     hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
-    wuxia_hex = {'勇敢': 0, '善良': 0, '深情': 0, '聪明': 0, '侠义': 0, '脆弱': 0}
+    wuxia_hex = Wuxianess
     total_weights = 0
     if model_type == 'big_five':
         for key in cloud:   # assert key is a word and cloud is a dict
@@ -386,28 +389,44 @@ def Est_Sularus_oth_Mithas(cloud, model_type): # return a normalized dict by mod
             hourglass[factor] = bayesian_average(hourglass[factor], total_weights, m=0.1)
         return hourglass
     elif model_type == 'wuxia':
-        for key in cloud:
-            total_weights += cloud[key]
+        if (mining_type != 'sents'):
+            for key in cloud:
+                total_weights += cloud[key]
+                for factor in wuxia_hex:
+                    wuxia_hex[factor] += cloud[key] * general_modelling(key, model_type)[factor]
             for factor in wuxia_hex:
-                wuxia_hex[factor] += cloud[key] * general_modelling(key, model_type)[factor]
-        for factor in wuxia_hex:
-            wuxia_hex[factor] = wuxia_hex[factor] / total_weights
-            #wuxia_hex[factor] = bayesian_average(wuxia_hex[factor], total_weights)
-        return wuxia_hex
+                wuxia_hex[factor] = wuxia_hex[factor] / total_weights
+                #wuxia_hex[factor] = bayesian_average(wuxia_hex[factor], total_weights)
+            return wuxia_hex
+        else:   # Comparing with sents.
+            sent_len = len(sents)
+            for sent in sents:
+                tmp_result = sentence_modelling(sent, 'wuxia')
+                for key in tmp_result:
+                    wuxia_hex[key] += tmp_result[key] / sent_len
+            return wuxia_hex
 
-def personality_traits_analysis(book_name, docs, names, model_type):   # docs shoule be the nlp 
+def personality_traits_analysis(book_name, docs, names, model_type, sents_dict={}, mining_type='cloud'):   # docs shoule be the nlp 
     # parsing result of read_chapters(book)
     name_en = translate(names)
     persoanlity_traits_with_names = {}
     wc_with_names = word_cloud(names, docs, ['ADJ', 'VERB', 'ROOT', 'VERB|ROOT'], ['amod', 'dobj', 'pobj'])
     print("===Names with Clouds Generated===")
     for name in names:
-        wc_with_name = wc_with_names[name]
-        print('===%s Word Cloud Created==='%(name))
-        result = Est_Sularus_oth_Mithas(wc_with_name, model_type)
-        print('===%s Personal Traits Calculated=='%(name))
-        print(result)
-        persoanlity_traits_with_names[name] = result
+        if (mining_type != 'sents'):
+            wc_with_name = wc_with_names[name]
+            print('===%s Word Cloud Created==='%(name))
+            result = Est_Sularus_oth_Mithas(wc_with_name, model_type)
+            print('===%s Personal Traits Calculated=='%(name))
+            print(result)
+            persoanlity_traits_with_names[name] = result
+        else:
+            print('===%s Sents Loaded==='%(name))
+            result = Est_Sularus_oth_Mithas({}, model_type, sents_dict[name], 'sents')
+            print('===%s Personal Traits Calculated=='%(name))
+            print(result)
+            persoanlity_traits_with_names[name] = result
+    
     return persoanlity_traits_with_names
 
 def write_parsing_result(book_name, result_as_dict, model_type):
@@ -465,19 +484,13 @@ def test():
     for txt in txts:
         docs.append(nlp(txt))
         print('===Chapter %d spacy NLP done!==='%(txts.index(txt)+1))
-    names_with_sents = count_big_names(jinyong_names, docs, 1)
-    for name in names_with_sents:
-        wuxia_octa = Wuxianess
-        name_with_sent = names_with_sents[name]
-        sent_len = len(name_with_sent)
-        for sent in name_with_sent:
-            tmp_result = sentence_modelling(sent, 'wuxia')
-            for key in tmp_result:
-                wuxia_octa[key] += tmp_result[key] / sent_len
-        print(name, wuxia_octa)
+    names_with_sents = count_big_names(jinyong_names, docs, 20)
+    names = list(names_with_sents.keys())
     #print(names_with_sents)
     #names = ['杨过', '丘处机']
-    #result = personality_traits_analysis('shendiao', docs, names, 'wuxia')
+    #result1 = personality_traits_analysis('shendiao', docs, names, 'wuxia')
+    result2 = personality_traits_analysis('shendiao', docs, names, 'wuxia', sents_dict=names_with_sents, mining_type='sents')
     #write_parsing_result('shendiao', result, 'wuxia')
 
 test()
+#test2()
