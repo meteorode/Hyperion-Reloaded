@@ -99,9 +99,11 @@ def read_model_details(filename):   # read detaied description from file
                 details[key] = value
     return details
 
-# ridiculousJiangHu models
+# ridiculousJiangHu and other models 
 
-ridiculousJiangHu_roles = {'侠客': '与反派敌对', '反派': '与侠客敌对', }
+models = persona.models # read from json file.
+
+#ridiculousJiangHu_roles = {'侠客': '与反派敌对', '反派': '与侠客敌对', }
 
 # JiangHu II script abstract
 # Conditions are clear, Actions would be like this:
@@ -139,6 +141,9 @@ def trim_conversation(words):   # trim “” and ‘’
                 thou_say = temp_words
             return thou_say
     return thou_say
+
+def behvaior_analysis(name, doc):   # Analysis character with {name} from doc
+    __TO_BE_CONTINUED_
 
 def script_extractor(doc): # extract scripts-like information from doc
     scripts = []

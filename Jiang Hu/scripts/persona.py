@@ -301,7 +301,8 @@ def init_model_samples():
 def sentence_modelling(sent, model_name, bar=0.67):  # Using sentece to compare instead of a single word.
     try:
         all_model_samples = init_model_samples()
-        this_model = all_model_samples[model_name]
+        this_model = models[model_name]
+        this_sample = all_model_samples[model_name]
     except:
         return {}
     for key in this_model:
@@ -309,8 +310,8 @@ def sentence_modelling(sent, model_name, bar=0.67):  # Using sentece to compare 
         sims = 0.0
         for s in this_model[key]:
             sims += word_similarity(sent, s) / s_len
-        this_model[key] = sims
-    return this_model
+        this_sample[key] = sims
+    return this_sample
 
 def general_modelling(word, model_type, bar=0.1): # General modelling using word_similarity()
     wuxia_hex = init_model_samples()['wuxia']
@@ -377,47 +378,47 @@ def word_cloud(words, docs, pos_types, dep_types, cap=1024): # return a nested d
 def Est_Sularus_oth_Mithas(cloud, model_type, sents=[], mining_type='cloud'): # return a normalized dict by model_type
     big_five = {'Openness': 0, 'Consientiousness': 0, 'Extraversion': 0, 'Agreebleness': 0, 'Neuroticism': 0}
     hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
-    wuxia_hex = Wuxianess
+    sents_hex = init_model_samples()[model_type]
     total_weights = 0
-    if model_type == 'big_five':
-        for key in cloud:   # assert key is a word and cloud is a dict
-            temp_result = ocean_horn(key)
-            if has_cn_sentic(key) == True:
-                total_weights += cloud[key]  # Shoule be meaningful while = 1, means equitity of each word
-                for factor in big_five:
-                    big_five[factor] += cloud[key] * temp_result[factor]
-        for factor in big_five:
-            big_five[factor] = big_five[factor] / total_weights
-            big_five[factor] = bayesian_average(big_five[factor], total_weights, m=0.42)
-        return big_five
-    elif model_type == 'hourglass':
-        for key in cloud:
-            temp_result = hourglass_light(key)
-            if has_cn_sentic(key) == True:
-                total_weights += cloud[key]
-                for factor in hourglass:
-                    hourglass[factor] += cloud[key] * temp_result[factor]
-        for factor in hourglass:
-            hourglass[factor] = hourglass[factor] / total_weights
-            hourglass[factor] = bayesian_average(hourglass[factor], total_weights, m=0.1)
-        return hourglass
-    elif model_type == 'wuxia':
-        if (mining_type != 'sents'):
+    if mining_type == 'sents':  # Comparing with sents.
+        sent_len = len(sents)
+        for sent in sents:
+            tmp_result = sentence_modelling(sent, model_type)
+            for key in tmp_result:
+                sents_hex[key] += tmp_result[key] / sent_len
+        return sents_hex
+    elif mining_type == 'cloud':
+        if model_type == 'big_five':
+            for key in cloud:   # assert key is a word and cloud is a dict
+                temp_result = ocean_horn(key)
+                if has_cn_sentic(key) == True:
+                    total_weights += cloud[key]  # Shoule be meaningful while = 1, means equitity of each word
+                    for factor in big_five:
+                        big_five[factor] += cloud[key] * temp_result[factor]
+            for factor in big_five:
+                big_five[factor] = big_five[factor] / total_weights
+                big_five[factor] = bayesian_average(big_five[factor], total_weights, m=0.42)
+            return big_five
+        elif model_type == 'hourglass':
             for key in cloud:
-                total_weights += cloud[key]
-                for factor in wuxia_hex:
-                    wuxia_hex[factor] += cloud[key] * general_modelling(key, model_type)[factor]
+                temp_result = hourglass_light(key)
+                if has_cn_sentic(key) == True:
+                    total_weights += cloud[key]
+                    for factor in hourglass:
+                        hourglass[factor] += cloud[key] * temp_result[factor]
+            for factor in hourglass:
+                hourglass[factor] = hourglass[factor] / total_weights
+                hourglass[factor] = bayesian_average(hourglass[factor], total_weights, m=0.1)
+            return hourglass
+    elif model_type == 'wuxia':
+        for key in cloud:
+            total_weights += cloud[key]
             for factor in wuxia_hex:
-                wuxia_hex[factor] = wuxia_hex[factor] / total_weights
-                #wuxia_hex[factor] = bayesian_average(wuxia_hex[factor], total_weights)
-            return wuxia_hex
-        else:   # Comparing with sents.
-            sent_len = len(sents)
-            for sent in sents:
-                tmp_result = sentence_modelling(sent, 'wuxia')
-                for key in tmp_result:
-                    wuxia_hex[key] += tmp_result[key] / sent_len
-            return wuxia_hex
+                wuxia_hex[factor] += cloud[key] * general_modelling(key, model_type)[factor]
+        for factor in wuxia_hex:
+            wuxia_hex[factor] = wuxia_hex[factor] / total_weights
+            #wuxia_hex[factor] = bayesian_average(wuxia_hex[factor], total_weights)
+        return wuxia_hex
 
 def personality_traits_analysis(book_name, docs, names, model_type, sents_dict={}, mining_type='cloud'):   # docs shoule be the nlp 
     # parsing result of read_chapters(book)
@@ -450,6 +451,8 @@ def write_parsing_result(book_name, result_as_dict, model_type):
             file.write('Name Openness Consientiousness Extraversion Agreebleness Neuroticism\n')
         elif model_type == 'wuxia':
             file.write('Name 勇敢 善良 深情 聪明 侠义 脆弱\n')
+        elif models == 'ridiculousJiangHu':
+            file.write('Name 侠客 路人 红颜 备胎 反派 喽啰 名门弟子 世外高人')
         for name in result_as_dict:
             file.write(name + ' ')
             pr = result_as_dict[name]
@@ -490,27 +493,28 @@ def eye_tracking(doc, name_set):  # return series like 'PERSON'(supposed to be n
 
 # Test units here.
 
+def test2():
+    rJ = models['ridiculousJiangHu']
+    for role in rJ:
+        for sent in rJ[role]:
+            print(role, sentence_modelling(sent, 'ridiculousJiangHu'))  # test result shows that we'll normalize the sents
+
 def test(): 
-    txts = read_chapters(books.shendiao)
+    #txts = read_chapters(books.shendiao)
+    txts = read_chapters(books.beixue)
     print('===Finished books reading!===')
     docs = []
     for txt in txts:
         docs.append(nlp(txt))
         print('===Chapter %d spacy NLP done!==='%(txts.index(txt)+1))
-    names_with_sents = count_big_names(jinyong_names, docs, 20)
-    names = list(names_with_sents.keys())
+    beixue_names = ['骆寒', '易敛', '荆三娘', '沈放', '袁老大', '萧如', '文翰林']
+    names_with_sents = count_big_names(beixue_names, docs, 7)
+    #names = list(names_with_sents.keys())
     #print(names_with_sents)
     #names = ['杨过', '丘处机']
     #result1 = personality_traits_analysis('shendiao', docs, names, 'wuxia')
-    result2 = personality_traits_analysis('shendiao', docs, names, 'wuxia', sents_dict=names_with_sents, mining_type='sents')
-    #write_parsing_result('shendiao', result, 'wuxia')
-
-def test2():
-    rJmodel = models['ridiculousJiangHu']
-    for role in rJmodel:
-        sents = rJmodel[role]
-        for sent in sents:
-            print(sent, entence_modelling(sent, model_name='ridiculousJiangHu'))
+    result2 = personality_traits_analysis('beixue', docs, beixue_names, 'ridiculousJiangHu', sents_dict=names_with_sents, mining_type='sents')
+    write_parsing_result('shendiao', result2, 'ridiculousJiangHu')
 
 #test()
 test2()
