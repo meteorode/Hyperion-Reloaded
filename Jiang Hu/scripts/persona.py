@@ -287,8 +287,6 @@ def read_model_config(filename):    # Read model config like wuxia{}, big_five{}
     return model_as_dict
 
 models = read_model_config('./data/model.json')
-typical_wuxia_sents = models['wuxia']
-ridiculousJiangHu_sents = models['ridiculousJiangHu']
 
 def init_model_samples():
     samples = {}
@@ -315,7 +313,7 @@ def sentence_modelling(sent, model_name, bar=0.67):  # Using sentece to compare 
     return this_model
 
 def general_modelling(word, model_type, bar=0.1): # General modelling using word_similarity()
-    wuxia_hex = Wuxianess
+    wuxia_hex = init_model_samples()['wuxia']
     wuxia_opposite = ['怯懦', '邪恶', '冷漠', '愚蠢', '卑鄙', '拘谨', '灵活', '坚强', '喧闹']
     if (model_type == 'wuxia'):
         for key in wuxia_hex:
@@ -507,5 +505,12 @@ def test():
     result2 = personality_traits_analysis('shendiao', docs, names, 'wuxia', sents_dict=names_with_sents, mining_type='sents')
     #write_parsing_result('shendiao', result, 'wuxia')
 
-test()
-#test2()
+def test2():
+    rJmodel = models['ridiculousJiangHu']
+    for role in rJmodel:
+        sents = rJmodel[role]
+        for sent in sents:
+            print(sent, entence_modelling(sent, model_name='ridiculousJiangHu'))
+
+#test()
+test2()
