@@ -260,6 +260,11 @@ def word_transformer(word):  # return a {'polarity_value': x1, 'pleasantness': x
 
 # Part I: Sentiment Analysis to determine A char's 「心」traits
 
+data_bias = {'侠客': 1.7391272187232971, '路人': 1.2142145857214928, 
+            '红颜': 1.3163177147507668, '备胎': 1.1940818801522255, '反派': 1.567589070647955, '喽啰': 2.080350801348686, 
+            '名门弟子': 1.4754455210641026, '世外高人': 1.6230301975738257}
+# ridiculous data bias
+
 Openness = ['想象力', '审美', '情感', '创造力', '开放', '哲学', '价值']
 Conscientiousness = ['能力', '公正', '逻辑', '责任', '成就', '自律', '谨慎', '克制']
 Extraversion = ['热情', '社交', '果断', '活跃', '冒险', '乐观']
@@ -310,7 +315,8 @@ def sentence_modelling(sent, model_name, bar=0.67):  # Using sentece to compare 
         sims = 0.0
         for s in this_model[key]:
             sims += word_similarity(sent, s) / s_len
-        this_sample[key] = sims
+        if (model_name == 'ridiculousJiangHu'):
+            this_sample[key] = sims / data_bias[key]
     return this_sample
 
 def general_modelling(word, model_type, bar=0.1): # General modelling using word_similarity()
@@ -493,12 +499,6 @@ def eye_tracking(doc, name_set):  # return series like 'PERSON'(supposed to be n
 
 # Test units here.
 
-def test2():
-    rJ = models['ridiculousJiangHu']
-    for role in rJ:
-        for sent in rJ[role]:
-            print(role, sentence_modelling(sent, 'ridiculousJiangHu'))  # test result shows that we'll normalize the sents
-
 def test(): 
     #txts = read_chapters(books.shendiao)
     txts = read_chapters(books.beixue)
@@ -514,7 +514,6 @@ def test():
     #names = ['杨过', '丘处机']
     #result1 = personality_traits_analysis('shendiao', docs, names, 'wuxia')
     result2 = personality_traits_analysis('beixue', docs, beixue_names, 'ridiculousJiangHu', sents_dict=names_with_sents, mining_type='sents')
-    write_parsing_result('shendiao', result2, 'ridiculousJiangHu')
+    #write_parsing_result('shendiao', result2, 'ridiculousJiangHu')
 
-#test()
-test2()
+test()
