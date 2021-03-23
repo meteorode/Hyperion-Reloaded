@@ -290,26 +290,29 @@ models = read_model_config('./data/model.json')
 typical_wuxia_sents = models['wuxia']
 ridiculousJiangHu_sents = models['ridiculousJiangHu']
 
-def init_model_result():
-    result = {}
+def init_model_samples():
+    samples = {}
     for model_name in models:
         tmp_result = {}
         model = models[model_name]
         for key in model:
             tmp_result[key] = 0
-        result[model_name] = tmp_result
-    return result
+        samples[model_name] = tmp_result
+    return samples
 
-def sentence_modelling(sent, model_type, bar=0.67):  # Using sentece to compare instead of a single word.
-    wuxia_octagon = Wuxianess
-    if (model_type == 'wuxia'):
-        for key in wuxia_octagon:
-            s_len = len(typical_wuxia_sents[key])
-            sims = 0.0
-            for s in typical_wuxia_sents[key]:
-                sims += word_similarity(sent, s) / s_len
-            wuxia_octagon[key] = sims
-    return wuxia_octagon    # __TO_BE_UPDATED__
+def sentence_modelling(sent, model_name, bar=0.67):  # Using sentece to compare instead of a single word.
+    try:
+        all_model_samples = init_model_samples()
+        this_model = all_model_samples[model_name]
+    except:
+        return {}
+    for key in this_model:
+        s_len = len(this_model[key])
+        sims = 0.0
+        for s in this_model[key]:
+            sims += word_similarity(sent, s) / s_len
+        this_model[key] = sims
+    return this_model
 
 def general_modelling(word, model_type, bar=0.1): # General modelling using word_similarity()
     wuxia_hex = Wuxianess
