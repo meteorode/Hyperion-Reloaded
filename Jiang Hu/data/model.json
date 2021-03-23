@@ -36,5 +36,16 @@
         "Extraversion": [],
         "Agreeableness": [],
         "Neuroticism": []
+    },
+    {
+        "model_name": "ridiculousJiangHu",
+        "侠客": [],
+        "路人": [],
+        "红颜": [],
+        "备胎": [],
+        "反派": [],
+        "喽啰": [],
+        "名门弟子": [],
+        "世外高人": []
     }
 ]

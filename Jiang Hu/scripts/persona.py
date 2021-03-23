@@ -276,19 +276,29 @@ def calc_persona_score(word, wordsets): # transfer all words to a vec then calc 
     score = score / sets_cap
     return score
 
-def read_model_config(filename, model_type='wuxia'):    # Read model config like wuxia{}, big_five{} and others from file.
+def read_model_config(filename):    # Read model config like wuxia{}, big_five{} and others from file.
+    model_as_dict = {}
     with open(filename) as file:
         models = json.load(file)   # A list of dict
         for model in models:
-            if model['model_name'] == model_type:
-                del model['model_name']
-                return model    # slice model_name
+            key = model['model_name']
+            del model['model_name']
+            model_as_dict[key] = model
+    return model_as_dict
 
-typical_wuxia_sents = read_model_config('./data/model.json')
+models = read_model_config('./data/model.json')
+typical_wuxia_sents = models['wuxia']
+ridiculousJiangHu_sents = models['ridiculousJiangHu']
 
-Wuxianess = {}
-for k in typical_wuxia_sents:
-    Wuxianess[k] = 0
+def init_model_result():
+    result = {}
+    for model_name in models:
+        tmp_result = {}
+        model = models[model_name]
+        for key in model:
+            tmp_result[key] = 0
+        result[model_name] = tmp_result
+    return result
 
 def sentence_modelling(sent, model_type, bar=0.67):  # Using sentece to compare instead of a single word.
     wuxia_octagon = Wuxianess
