@@ -325,7 +325,6 @@ def sentence_modelling(sent, model_name, is_dualistic=False, bar=0.67):  # Using
             assert (len(pro_cons) == 2) == True
             pros = pro_cons[0][1]   # list of pros
             cons = pro_cons[1][1]   # list of cons
-            print(pros, cons)
             sims = 0.0
             p_len = len(pros)
             c_len = len(cons)
@@ -399,7 +398,7 @@ def word_cloud(words, docs, pos_types, dep_types, cap=1024): # return a nested d
         clouds[cloud] = new_cloud
     return clouds
 
-def Est_Sularus_oth_Mithas(cloud, model_type, sents=[], mining_type='cloud'): # return a normalized dict by model_type
+def Est_Sularus_oth_Mithas(cloud, model_type, sents=[], mining_type='cloud', is_dualistic=False): # return a normalized dict by model_type
     big_five = {'Openness': 0, 'Consientiousness': 0, 'Extraversion': 0, 'Agreebleness': 0, 'Neuroticism': 0}
     hourglass = {'pleasantness': 0, 'attention': 0, 'sensitivity': 0, 'aptitude': 0}
     sents_hex = init_model_samples()[model_type]
@@ -407,7 +406,7 @@ def Est_Sularus_oth_Mithas(cloud, model_type, sents=[], mining_type='cloud'): # 
     if mining_type == 'sents':  # Comparing with sents.
         sent_len = len(sents)
         for sent in sents:
-            tmp_result = sentence_modelling(sent, model_type)
+            tmp_result = sentence_modelling(sent, model_type, is_dualistic)
             for key in tmp_result:
                 sents_hex[key] += tmp_result[key] / sent_len
         return sents_hex
@@ -444,7 +443,7 @@ def Est_Sularus_oth_Mithas(cloud, model_type, sents=[], mining_type='cloud'): # 
             #wuxia_hex[factor] = bayesian_average(wuxia_hex[factor], total_weights)
         return wuxia_hex
 
-def personality_traits_analysis(book_name, docs, names, model_type, sents_dict={}, mining_type='cloud'):   # docs shoule be the nlp 
+def personality_traits_analysis(book_name, docs, names, model_type, sents_dict={}, mining_type='cloud', is_dualistic=False):   # docs shoule be the nlp 
     # parsing result of read_chapters(book)
     name_en = translate(names)
     persoanlity_traits_with_names = {}
@@ -460,7 +459,7 @@ def personality_traits_analysis(book_name, docs, names, model_type, sents_dict={
             persoanlity_traits_with_names[name] = result
         else:
             print('===%s Sents Loaded==='%(name))
-            result = Est_Sularus_oth_Mithas({}, model_type, sents_dict[name], 'sents')
+            result = Est_Sularus_oth_Mithas({}, model_type, sents_dict[name], 'sents', is_dualistic)
             print('===%s Personal Traits Calculated=='%(name))
             print(result)
             persoanlity_traits_with_names[name] = result
@@ -534,8 +533,8 @@ def test():
     names = list(names_with_sents.keys())
     #names = ['杨过', '丘处机']
     #result1 = personality_traits_analysis('shendiao', docs, names, 'wuxia')
-    result2 = personality_traits_analysis('shediao', docs, names, 'ridiculousJiangHu', sents_dict=names_with_sents, mining_type='sents')
-    write_parsing_result('shediao', result2, 'ridiculousJiangHu')
+    result2 = personality_traits_analysis('shediao', docs, names, 'big_five', sents_dict=names_with_sents, mining_type='sents', is_dualistic=True)
+    write_parsing_result('shediao', result2, 'big_five')
 
-#test()
-test2()
+test()
+#test2()
