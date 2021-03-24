@@ -29,7 +29,8 @@ cn_sn = BabelSenticNet('cn')    # Use SenticNet to analysis.
 
 p = Path('.')   # current Path
 
-embedder = SentenceTransformer('./models/distiluse-base-multilingual-cased')    # Trying use SentenceTransformer to re-calculate word_similarity
+#embedder = SentenceTransformer('./models/distiluse-base-multilingual-cased')    # Trying use SentenceTransformer to re-calculate word_similarity
+embedder = SentenceTransformer('./models/stsb-xlm-r-multilingual') # Optimized for Semantic Textual Similarity
 
 # Methods to get var name as string.
 
@@ -290,8 +291,8 @@ def calc_sample_bias(model_name='ridiculousJiangHu'):
                 data[key] += word_similarity(sent, other_sent) / len(all_sents)
     return data
 
-rJ_data_bias = calc_sample_bias()# ridiculous data bias
-#print(rJ_data_bias)
+rJ_data_bias = calc_sample_bias()   # ridiculous data bias
+#wuxia_data_bias = calc_sample_bias(model_name='wuxia')
 
 def init_model_samples():
     samples = {}
@@ -303,20 +304,37 @@ def init_model_samples():
         samples[model_name] = tmp_result
     return samples
 
-def sentence_modelling(sent, model_name, bar=0.67):  # Using sentece to compare instead of a single word.
+def sentence_modelling(sent, model_name, is_dualistic=False, bar=0.67):  # Using sentece to compare instead of a single word, if is_dualistic == True, the model woul
+    # have pros and cons.
     try:
         all_model_samples = init_model_samples()
         this_model = models[model_name]
         this_sample = all_model_samples[model_name]
     except:
         return {}
-    for key in this_model:
-        s_len = len(this_model[key])
-        sims = 0.0
-        for s in this_model[key]:
-            sims += word_similarity(sent, s) / s_len
-        if (model_name == 'ridiculousJiangHu'):
-            this_sample[key] = sims / rJ_data_bias[key]
+    if (is_dualistic == False):
+        for key in this_model:
+            s_len = len(this_model[key])
+            sims = 0.0
+            for s in this_model[key]:
+                sims += word_similarity(sent, s) / s_len
+                this_sample[key] = sims / calc_sample_bias(model_name)
+    else:
+        for key in this_model:
+            pro_cons = list(this_model[key].items())
+            assert (len(pro_cons) == 2) == True
+            pros = pro_cons[0][1]   # list of pros
+            cons = pro_cons[1][1]   # list of cons
+            print(pros, cons)
+            sims = 0.0
+            p_len = len(pros)
+            c_len = len(cons)
+            for p in pros:
+                sims += word_similarity(sent, p) / p_len
+            for c in cons:
+                sims -= word_similarity(sent, c) / c_len
+            this_sample[key] = sims
+
     return this_sample
 
 def general_modelling(word, model_type, bar=0.1): # General modelling using word_similarity()
@@ -499,6 +517,11 @@ def eye_tracking(doc, name_set):  # return series like 'PERSON'(supposed to be n
 
 # Test units here.
 
+def test2():
+    big_five = models['big_five']
+    for key in big_five:
+        print(key, sentence_modelling(key, 'big_five', is_dualistic=True))
+
 def test(): 
     txts = books.read_chapters(books.shediao)
     print('===Finished books reading!===')
@@ -514,4 +537,5 @@ def test():
     result2 = personality_traits_analysis('shediao', docs, names, 'ridiculousJiangHu', sents_dict=names_with_sents, mining_type='sents')
     write_parsing_result('shediao', result2, 'ridiculousJiangHu')
 
-test()
+#test()
+test2()
