@@ -57,3 +57,22 @@ beixue.sort()
 # EN books
 alice = list(p.glob('fairy_tales/Alice in Wonderland/*.txt'))
 alice.sort()
+
+def read_names(category ='novel', author='jinyong'):
+    names = []
+    with open('%s/%s/person_list.txt' %(category, author), 'r') as file:
+        lines = file.readlines()
+        for line in lines:
+            names.append(line.rstrip('\n'))
+    return names
+
+def read_chapters(book):
+    txts = []
+    for chapter in book:
+        with open(chapter, 'r') as file:
+            txts.append(file.read())
+    return txts
+
+jinyong_names = read_names()
+gulong_names = read_names(author='gulong')
+xiaoduan_names = read_names(author='xiaoduan')

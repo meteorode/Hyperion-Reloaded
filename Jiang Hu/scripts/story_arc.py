@@ -14,10 +14,11 @@ from senticnet.babelsenticnet import BabelSenticNet
 import inspect
 import math
 import numpy as np
-#import persona
+import persona
 import books
 from sentence_transformers import SentenceTransformer, util
 import torch
+import nlp
 
 # spaCy init
 
@@ -36,13 +37,6 @@ embedder = SentenceTransformer('./models/distiluse-base-multilingual-cased')
 # Fundamental modules
 
 # Methods to get var name as string.
-
-def read_chapters(book):
-    txts = []
-    for chapter in book:
-        with open(chapter, 'r') as file:
-            txts.append(file.read())
-    return txts
 
 def retrieve_name(var):
         """
@@ -215,7 +209,7 @@ def semantic_search(corpus, queries, result_num): # # Find the closest {result_n
             print(corpus[idx], "(Score: {:.4f})".format(score))
 
 def write_script(book_name, book_prefix, slice_length, doc_type):  # Write scipts to files, slice the docs to increase performance
-    txts = read_chapters(book_name)
+    txts = books.read_chapters(book_name)
     print('===Finish Reading===\n')
     chapters_num = len(txts)
     if chapters_num >= slice_length:

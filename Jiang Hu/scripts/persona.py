@@ -16,6 +16,7 @@ import books
 from sentence_transformers import SentenceTransformer, util
 import torch
 import json
+import nlp
 
 spacy.prefer_gpu()  # Using GPU to run programm
 
@@ -29,19 +30,6 @@ cn_sn = BabelSenticNet('cn')    # Use SenticNet to analysis.
 p = Path('.')   # current Path
 
 embedder = SentenceTransformer('./models/distiluse-base-multilingual-cased')    # Trying use SentenceTransformer to re-calculate word_similarity
-
-jinyong_names = []
-with open('novels/jinyong/person_list.txt', 'r') as file:
-    lines = file.readlines()
-    for line in lines:
-        jinyong_names.append(line.rstrip('\n'))
-
-def read_chapters(book):
-    txts = []
-    for chapter in book:
-        with open(chapter, 'r') as file:
-            txts.append(file.read())
-    return txts
 
 # Methods to get var name as string.
 
@@ -512,14 +500,14 @@ def eye_tracking(doc, name_set):  # return series like 'PERSON'(supposed to be n
 # Test units here.
 
 def test(): 
-    txts = read_chapters(books.shediao)
+    txts = books.read_chapters(books.shediao)
     print('===Finished books reading!===')
     docs = []
     for txt in txts:
         docs.append(nlp(txt))
         print('===Chapter %d spacy NLP done!==='%(txts.index(txt)+1))
     #beixue_names = ['骆寒', '易敛', '荆三娘', '沈放', '袁老大', '萧如', '文翰林']
-    names_with_sents = count_big_names(jinyong_names, docs, 20)
+    names_with_sents = count_big_names(books.jinyong_names, docs, 20)
     names = list(names_with_sents.keys())
     #names = ['杨过', '丘处机']
     #result1 = personality_traits_analysis('shendiao', docs, names, 'wuxia')
