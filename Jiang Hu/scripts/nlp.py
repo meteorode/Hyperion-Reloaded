@@ -24,4 +24,6 @@ p = Path('.')   # current Path
 embedder = SentenceTransformer('./models/distiluse-base-multilingual-cased')    # Trying use SentenceTransformer to re-calculate word_similarity
 sts_embedder = SentenceTransformer('./models/stsb-xlm-r-multilingual') # Optimized for Semantic Textual Similarity
 
-def count_name_with_attrs(name, attrs, docs, count_num=20, result_cap=1024):    
+def count_name_with_attrs(name, words_related, docs, name_attrs={'dep': ['nsubj']}, attrs_related={'pos': ['VERB', 'ROOT', 'ADJ', 'VERB|ROOT']}, count_num=20, result_cap=1024):    
+    # count a name with {name_attrs} and words_related with {attr_related} in docs, return a {'some key': sent} dict
+    pass
