@@ -260,11 +260,6 @@ def word_transformer(word):  # return a {'polarity_value': x1, 'pleasantness': x
 
 # Part I: Sentiment Analysis to determine A char's 「心」traits
 
-data_bias = {'侠客': 1.7391272187232971, '路人': 1.2142145857214928, 
-            '红颜': 1.3163177147507668, '备胎': 1.1940818801522255, '反派': 1.567589070647955, '喽啰': 2.080350801348686, 
-            '名门弟子': 1.4754455210641026, '世外高人': 1.6230301975738257}
-# ridiculous data bias
-
 Openness = ['想象力', '审美', '情感', '创造力', '开放', '哲学', '价值']
 Conscientiousness = ['能力', '公正', '逻辑', '责任', '成就', '自律', '谨慎', '克制']
 Extraversion = ['热情', '社交', '果断', '活跃', '冒险', '乐观']
@@ -293,6 +288,23 @@ def read_model_config(filename):    # Read model config like wuxia{}, big_five{}
 
 models = read_model_config('./data/model.json')
 
+def calc_sample_bias(model_name='ridiculousJiangHu'):
+    model = models[model_name]
+    all_sents = []
+    data = {}
+    for key in model:
+        data[key] = 0
+        for sent in model[key]:
+            all_sents.append(sent)
+    for key in model:
+        for sent in model[key]:
+            for other_sent in all_sents:
+                data[key] += word_similarity(sent, other_sent) / len(all_sents)
+    return data
+
+rJ_data_bias = calc_sample_bias()# ridiculous data bias
+#print(rJ_data_bias)
+
 def init_model_samples():
     samples = {}
     for model_name in models:
@@ -316,7 +328,7 @@ def sentence_modelling(sent, model_name, bar=0.67):  # Using sentece to compare 
         for s in this_model[key]:
             sims += word_similarity(sent, s) / s_len
         if (model_name == 'ridiculousJiangHu'):
-            this_sample[key] = sims / data_bias[key]
+            this_sample[key] = sims / rJ_data_bias[key]
     return this_sample
 
 def general_modelling(word, model_type, bar=0.1): # General modelling using word_similarity()
@@ -457,14 +469,14 @@ def write_parsing_result(book_name, result_as_dict, model_type):
             file.write('Name Openness Consientiousness Extraversion Agreebleness Neuroticism\n')
         elif model_type == 'wuxia':
             file.write('Name 勇敢 善良 深情 聪明 侠义 脆弱\n')
-        elif models == 'ridiculousJiangHu':
+        elif model_type == 'ridiculousJiangHu':
             file.write('Name 侠客 路人 红颜 备胎 反派 喽啰 名门弟子 世外高人')
         for name in result_as_dict:
             file.write(name + ' ')
             pr = result_as_dict[name]
             for key in pr:
                 file.write('%.6f ' %(pr[key]) + ' ')
-        file.write('\n')  
+            file.write('\n')  
 
 # Part II: Events and Choices slicing
 
@@ -500,20 +512,18 @@ def eye_tracking(doc, name_set):  # return series like 'PERSON'(supposed to be n
 # Test units here.
 
 def test(): 
-    #txts = read_chapters(books.shendiao)
-    txts = read_chapters(books.beixue)
+    txts = read_chapters(books.shediao)
     print('===Finished books reading!===')
     docs = []
     for txt in txts:
         docs.append(nlp(txt))
         print('===Chapter %d spacy NLP done!==='%(txts.index(txt)+1))
-    beixue_names = ['骆寒', '易敛', '荆三娘', '沈放', '袁老大', '萧如', '文翰林']
-    names_with_sents = count_big_names(beixue_names, docs, 7)
-    #names = list(names_with_sents.keys())
-    #print(names_with_sents)
+    #beixue_names = ['骆寒', '易敛', '荆三娘', '沈放', '袁老大', '萧如', '文翰林']
+    names_with_sents = count_big_names(jinyong_names, docs, 20)
+    names = list(names_with_sents.keys())
     #names = ['杨过', '丘处机']
     #result1 = personality_traits_analysis('shendiao', docs, names, 'wuxia')
-    result2 = personality_traits_analysis('beixue', docs, beixue_names, 'ridiculousJiangHu', sents_dict=names_with_sents, mining_type='sents')
-    #write_parsing_result('shendiao', result2, 'ridiculousJiangHu')
+    result2 = personality_traits_analysis('shediao', docs, names, 'ridiculousJiangHu', sents_dict=names_with_sents, mining_type='sents')
+    write_parsing_result('shediao', result2, 'ridiculousJiangHu')
 
 test()
