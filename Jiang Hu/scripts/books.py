@@ -1,3 +1,5 @@
+# books.py
+
 from pathlib import Path
 
 p = Path('.')
@@ -58,7 +60,7 @@ beixue.sort()
 alice = list(p.glob('fairy_tales/Alice in Wonderland/*.txt'))
 alice.sort()
 
-def read_names(category ='novel', author='jinyong'):
+def read_names(category ='novels', author='jinyong'):
     names = []
     with open('%s/%s/person_list.txt' %(category, author), 'r') as file:
         lines = file.readlines()
