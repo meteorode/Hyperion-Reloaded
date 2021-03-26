@@ -14,11 +14,11 @@ from senticnet.babelsenticnet import BabelSenticNet
 import inspect
 import math
 import numpy as np
-import persona
+#import persona
 import texts
 from sentence_transformers import SentenceTransformer, util
 import torch
-import nlp
+#import nlp
 
 # spaCy init
 
@@ -33,6 +33,7 @@ cn_sn = BabelSenticNet('cn')    # Use SenticNet to analysis.
 p = Path('.')   # current Path
 
 embedder = SentenceTransformer('./models/distiluse-base-multilingual-cased')
+sts_embedder = SentenceTransformer('./models/stsb-xlm-r-multilingual') # Optimized for Semantic Textual Similarity
 
 # Fundamental modules
 
@@ -54,9 +55,13 @@ def sort_dict(dict): # return a sorted dictionary by values
     sorted_dict = {k: v for k, v in sorted_tuples}
     return sorted_dict
 
-def word_similarity(w1, w2):    # Use model.encode() and pytorch_cos_sim() to calc
-    emb1 = embedder.encode(w1)
-    emb2 = embedder.encode(w2)
+def word_similarity(w1, w2, model_name='default'):    # Use model.encode() and pytorch_cos_sim() to calc
+    if (model_name != 'sts'):
+        emb1 = embedder.encode(w1)
+        emb2 = embedder.encode(w2)
+    else:
+        emb1 = sts_embedder.encode(w1)
+        emb2 = sts_embedder.encode(w2)
     
     cos_sim = util.pytorch_cos_sim(emb1, emb2).item()   # convert an 1 dimensional tensor to float
     return cos_sim
@@ -71,24 +76,33 @@ class hero:
         self.persona_ocean = persona_ocean
         self.persona_hourglass = persona_hourglass
 
-def read_model_details(filename):   # read detaied description from file
-    details = {}
-    with open(filename, 'r') as file:
-        for line in file:
-            if line != '':
-                dict_pairs = line.split('|')
-                assert (len(dict_pairs) == 2) == True
-                key = dict_pairs[0]
-                value = dict_pairs[1]
-                details[key] = value
-    return details
-
 # ridiculousJiangHu and other models 
 
 models = texts.models # read from json file.
 propp_model = models['propp']
 
-#ridiculousJiangHu_roles = {'侠客': '与反派敌对', '反派': '与侠客敌对', }
+#persona.sent_clustering(sent, doc, neighbor_num=5)
+
+def text_classification(contents, model_name='propp', bar=0.3, top_k=3, is_dualistic=False): # Classify a list of sent by model[model_name]
+    try:
+        classify_model = models[model_name]
+    except:
+        classify_model = models['propp']
+    result = {}
+    if (is_dualistic == False):
+        for key in classify_model:
+            result[key] = 0
+            s_len = len(classify_model[key])
+            for sent in classify_model[key]:
+                for c in contents:
+                    if (word_similarity(c, sent) >= bar):
+                        result[key] += word_similarity(c, sent, model_name='sts') / s_len
+        sorted_result = sort_dict(result)
+        topk_items = list(sorted_result.items())[:top_k]
+        final_result = {}
+        for item in topk_items:
+            final_result[item[0]] = item[1]
+        return final_result
 
 # JiangHu II script abstract
 # Conditions are clear, Actions would be like this:
@@ -127,58 +141,65 @@ def trim_conversation(words):   # trim “” and ‘’
             return thou_say
     return thou_say
 
+def summarization(doc): # Extract summary from a doc.
+    pass
+
 def behvaior_analysis(name, doc):   # Analysis character with {name} from doc
     pass
 
-def script_extractor(doc): # extract scripts-like information from doc
+def script_extractor(doc, model_name='JiangHu', bar=0.25): # extract scripts-like information from doc
     scripts = []
     nsubj = dobj = script = ''
     sents = doc.sents   # We'll use sentence for basic units
+    ent_table = {'GPE': ' MOVE TO: ', 'LOC': ' MOVE TO: ', 'PRODUCT': ' GAIN: ', 'MONEY': ' GAIN: ', 'WORK_OF_ART': ' GAIN: ', 'EVENT': ' ATTEND: '}
+    action_table = {'TALK': ' TALK TO: ', 'DEFEAT': ' DEFEAT: ', 'FIGHT': ' FIGHT WITH: ', 'KILL': ' KILL: '}
     for sent in sents:
-        for token in sent:
-            if token.pos_ == 'VERB' and jh_action_classify(token.text) == 'say':   # SAY
-                found_speaker = False
-                for child in token.children:
-                    if child.dep_ == 'nsubj':
-                        nsubj = child.text
-                        found_speaker = True
-                if (found_speaker == False):
-                    nsubj = '作者'
-                dixit = '' # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
-                    # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
-                dixit = trim_conversation(sent.text)
-                script = nsubj + ' SAY: ' + dixit
-                scripts.append(script)
-                break
-            elif token.ent_type_ in ['GPE', 'LOC', 'PRODUCT', 'MONEY', 'WORK_OF_ART', 'EVENT']: # MOVE TO/GAIN/ATTEND
-                ent = token.ent_type_
-                dobj = token.text
-                found_sb = False
-                ent_table = {'GPE': ' MOVE TO: ', 'LOC': ' MOVE TO: ', 'PRODUCT': ' GAIN: ', 'MONEY': ' GAIN: ', 
-                'WORK_OF_ART': ' GAIN: ', 'EVENT': ' ATTEND: '}
-                for nbor in token.head.children:  # suppose the depency tree is (token: [GPE])(token.head: {VERB})(some child: <nsubj>)
-                    if nbor.dep_ == 'nsubj':
-                        nsubj = nbor.text
-                        found_sb = True
-                if (found_sb == False):
-                    nsubj = '宋兵乙'
-                script = nsubj + ent_table[ent] + dobj
-                scripts.append(script)
-                break
-            elif token.ent_type_ == 'PERSON' and token.dep_ == 'nsubj':
-                action_related = jh_action_classify(token.head.text)
-                if (action_related in ['talk', 'kill', 'fight', 'defeat']):
-                    found_erdos = False
-                    for nbor in token.head.children:
-                        if nbor.dep_ == 'dobj':
-                            dobj = nbor.text
-                            found_erdos = True
-                    if (found_erdos == False):
-                        dobj = '路人甲'
-                    action_table = {'talk': ' TALK TO: ', 'defeat': ' DEFEAT: ', 'fight': ' FIGHT WITH: ', 'kill': ' KILL: '}
-                    script = nsubj + action_table[action_related] + dobj
+        sent_in_JiangHu = text_classification([sent.text], model_name='JiangHu Script')
+        if max(list(sent_in_JiangHu.values())) >= bar: # meanigful sent?
+            sent_type = list(sent_in_JiangHu.keys())[0] # suppose sent_type is determined by text classification.
+            for token in sent:
+                if token.pos_ == 'VERB' and sent_type == 'SAY':   # SAY
+                    found_speaker = False
+                    for child in token.children:
+                        if child.dep_ == 'nsubj':
+                            nsubj = child.text
+                            found_speaker = True
+                    if (found_speaker == False):
+                        nsubj = '作者'
+                    dixit = '' # Etymology Borrowed from Latin ipse dīxit (“he himself said it”), calque of Ancient Greek αὐτὸς ἔφα (autòs épha). 
+                        # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
+                    dixit = trim_conversation(sent.text)
+                    script = nsubj + ' SAY: ' + dixit
+                    print(script)
                     scripts.append(script)
                     break
+                elif token.ent_type_ in ['GPE', 'LOC', 'PRODUCT', 'MONEY', 'WORK_OF_ART', 'EVENT'] and sent_type in ['MOVE', 'GAIN', 'ATTEND']: # MOVE TO/GAIN/ATTEND
+                    ent = token.ent_type_
+                    dobj = token.text
+                    found_sb = False
+                    for nbor in token.head.children:  # suppose the depency tree is (token: [GPE])(token.head: {VERB})(some child: <nsubj>)
+                        if nbor.dep_ == 'nsubj':
+                            nsubj = nbor.text
+                            found_sb = True
+                    if (found_sb == False):
+                        nsubj = '宋兵乙'
+                    script = nsubj + ent_table[ent] + dobj
+                    print(script)
+                    scripts.append(script)
+                    break
+                elif token.ent_type_ == 'PERSON' and token.dep_ == 'nsubj':
+                    if (sent_type in ['TALK', 'KILL', 'FIGHT', 'DEFEAT']):
+                        found_erdos = False
+                        for nbor in token.head.children:
+                            if nbor.dep_ == 'dobj':
+                                dobj = nbor.text
+                                found_erdos = True
+                        if (found_erdos == False):
+                            dobj = '路人甲'
+                        script = nsubj + action_table[sent_type] + dobj
+                        print(script)
+                        scripts.append(script)
+                        break
     return scripts
 
 def write_script(book_name, book_prefix, slice_length, doc_type):  # Write scipts to files, slice the docs to increase performance
@@ -209,7 +230,9 @@ def write_script(book_name, book_prefix, slice_length, doc_type):  # Write scipt
 
 # Test Unit
 def test():
-    write_script(texts.shendiao, 'shendiao', 3, 'cn')
+    #txt = ['岂知杨康极是乖觉，只恐有变，对遗命一节绝口不提，直到在大会之中方始宣示。净衣派三老明知自己无份，也不失望，只消鲁有脚不任帮主，便遂心愿，又想杨康年轻，必可诱他就范。何况他衣着华丽，食求精美，决不会偏向污衣派。当下三人对望了一眼，各自点了点头。简长老道：“这位杨相公所持的，确是本帮圣物。众兄弟如有疑惑，请上前检视。”鲁有脚侧目斜睨杨康，心道：“凭你这小子也配作本帮帮主，统率天下各路丐帮？”伸手接过竹杖，见那杖碧绿晶莹，果是本帮帮主世代相传之物，心想，“必是洪帮主感念相救之德，是以传他']
+    #print(text_classification(txt))    
+    write_script(texts.shediao, 'shediao', 3, 'cn')
     #docs.append(nlp(txt))
     #doc_milestone = list(persona.find_sents_with_specs(docs, ['PERSON', 'LOC', 'GPE', 'EVENT'])[1].values())
     #queries = list(propp_models.values())

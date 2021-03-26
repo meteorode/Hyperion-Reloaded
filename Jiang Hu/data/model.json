@@ -229,6 +229,41 @@
         ]
     },
     {
+        "model_name": "JiangHu Script",
+        "TALK": [
+            "Someone talked to the other.",
+            "某人与另一人交谈"
+        ],
+        "MOVE": [
+            "Someone moved to a place.",
+            "某人移动到某处"
+        ],
+        "SAY": [
+            "Someone said something.",
+            "某人说了某些话"
+        ],
+        "ATTEND": [
+            "Someone attend an event.",
+            "某人参加了某活动"
+        ],
+        "FIGHT": [
+            "Someone fights with others.",
+            "某人和其他人战斗"
+        ],
+        "KILL": [
+            "Someone killed other people.",
+            "某人杀掉了某些人"
+        ],
+        "DEFEAT": [
+            "Someone defeat other people.",
+            "某人击败了另一人"
+        ],
+        "GAIN": [
+            "Someone gain something(usually valuable objects)",
+            "某人得到了某样东西（财宝，秘籍等有价值的东西）"
+        ]
+    },
+    {
         "model_name": "big_five",
         "Openness": {
             "High": [

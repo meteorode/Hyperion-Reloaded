@@ -90,7 +90,7 @@ def count_attrs(doc, attr_type):
     #print("top entities{}".format(sorted(entities.items(), key=lambda kv: kv[1], reverse=True)[:30]))
     return entities
 
-def sent_clustering(sent, doc, neighbor_num):   # return {neighbor_num} sents before and after in doc
+def sent_clustering(sent, doc, neighbor_num=5):   # return {neighbor_num} sents before and after in doc
     assert(sent in doc.sents) == True
     sents = list(doc.sents)
     sent_index = sents.index(sent)
