@@ -1,6 +1,7 @@
-# books.py
+# texts and json files reader.py
 
 from pathlib import Path
+import json
 
 p = Path('.')
 
@@ -75,6 +76,18 @@ def read_chapters(book):
             txts.append(file.read())
     return txts
 
+def read_model_config(filename):    # Read model config like wuxia{}, big_five{} and others from file.
+    model_as_dict = {}
+    with open(filename) as file:
+        models = json.load(file)   # A list of dict
+        for model in models:
+            key = model['model_name']
+            del model['model_name']
+            model_as_dict[key] = model
+    return model_as_dict
+
+models = read_model_config('./data/model.json')
+
 jinyong_names = read_names()
-gulong_names = read_names(author='gulong')
-xiaoduan_names = read_names(author='xiaoduan')
+#gulong_names = read_names(author='gulong')
+#xiaoduan_names = read_names(author='xiaoduan')

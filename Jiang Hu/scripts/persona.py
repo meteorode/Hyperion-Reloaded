@@ -12,11 +12,10 @@ from senticnet.babelsenticnet import BabelSenticNet
 import inspect
 import math
 import numpy as np
-import books
+import texts
 from sentence_transformers import SentenceTransformer, util
 import torch
-import json
-import nlp
+#import nlp
 
 spacy.prefer_gpu()  # Using GPU to run programm
 
@@ -265,17 +264,7 @@ def calc_persona_score(word, wordsets): # transfer all words to a vec then calc 
     score = score / sets_cap
     return score
 
-def read_model_config(filename):    # Read model config like wuxia{}, big_five{} and others from file.
-    model_as_dict = {}
-    with open(filename) as file:
-        models = json.load(file)   # A list of dict
-        for model in models:
-            key = model['model_name']
-            del model['model_name']
-            model_as_dict[key] = model
-    return model_as_dict
-
-models = read_model_config('./data/model.json')
+models = texts.models
 
 def calc_sample_bias(model_name='ridiculousJiangHu'):
     model = models[model_name]
@@ -433,15 +422,6 @@ def Est_Sularus_oth_Mithas(cloud, model_type, sents=[], mining_type='cloud', is_
                 hourglass[factor] = hourglass[factor] / total_weights
                 hourglass[factor] = bayesian_average(hourglass[factor], total_weights, m=0.1)
             return hourglass
-    elif model_type == 'wuxia':
-        for key in cloud:
-            total_weights += cloud[key]
-            for factor in wuxia_hex:
-                wuxia_hex[factor] += cloud[key] * general_modelling(key, model_type)[factor]
-        for factor in wuxia_hex:
-            wuxia_hex[factor] = wuxia_hex[factor] / total_weights
-            #wuxia_hex[factor] = bayesian_average(wuxia_hex[factor], total_weights)
-        return wuxia_hex
 
 def personality_traits_analysis(book_name, docs, names, model_type, sents_dict={}, mining_type='cloud', is_dualistic=False):   # docs shoule be the nlp 
     # parsing result of read_chapters(book)
@@ -522,19 +502,19 @@ def test2():
         print(key, sentence_modelling(key, 'big_five', is_dualistic=True))
 
 def test(): 
-    txts = books.read_chapters(books.shediao)
+    txts = texts.read_chapters(texts.shediao)
     print('===Finished books reading!===')
     docs = []
     for txt in txts:
         docs.append(nlp(txt))
         print('===Chapter %d spacy NLP done!==='%(txts.index(txt)+1))
     #beixue_names = ['骆寒', '易敛', '荆三娘', '沈放', '袁老大', '萧如', '文翰林']
-    names_with_sents = count_big_names(books.jinyong_names, docs, 20)
+    names_with_sents = count_big_names(texts.jinyong_names, docs, 20)
     names = list(names_with_sents.keys())
     #names = ['杨过', '丘处机']
     #result1 = personality_traits_analysis('shendiao', docs, names, 'wuxia')
     result2 = personality_traits_analysis('shediao', docs, names, 'big_five', sents_dict=names_with_sents, mining_type='sents', is_dualistic=True)
     write_parsing_result('shediao', result2, 'big_five')
 
-test()
+#test()
 #test2()

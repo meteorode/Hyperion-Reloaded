@@ -15,7 +15,7 @@ import inspect
 import math
 import numpy as np
 import persona
-import books
+import texts
 from sentence_transformers import SentenceTransformer, util
 import torch
 import nlp
@@ -71,16 +71,6 @@ class hero:
         self.persona_ocean = persona_ocean
         self.persona_hourglass = persona_hourglass
 
-# Propp models
-propp_models = {'Absentation': 'Someone goes missing', 'Interdiction': 'Hero is warned', 'Violation': 'Violation of interdiction', 'Reconnaissance': 'Villain seeks something', 
-                'Delivery': 'The villain gains information', 'Trickery': 'Villain attempts to deceive victim', 'Complicity': 'Unwitting helping of the enemy',
-                'Villainy and lack': 'The need is identified', 'Mediation': 'Hero discovers the lack', 'Counteraction': 'Hero chooses positive action', 'Departure': 'Hero leave on mission',
-                'Testing': 'Hero is challenged to prove heroic qualities', 'Reaction': 'Hero responds to test', 'Acquisition': 'Hero gains magical item', 'Guidance': 'Hero reaches destination',
-                'Struggle': 'Hero and villain do battle', 'Branding': 'Hero is branded', 'Victory': 'Villain is defeated', 'Resolution': 'Initial misfortune or lack is resolved',
-                'Return': 'Hero sets out for home', 'Pursuit': 'Hero is chased', 'Rescue': 'pursuit ends', 'Arrival': 'Hero arrives unrecognized', 'Claim': 'False hero makes unfounded claims',
-                'Task': 'Difficult task proposed to the hero', 'Solution': 'Task is resolved', 'Recognition': 'Hero is recognised', 'Exposure': 'False hero is exposed',
-                'Transfiguration': 'Hero is given a new appearance', 'Punishment': 'Villain is punished', 'Wedding': 'Hero marries and ascends the throne'}
-
 def read_model_details(filename):   # read detaied description from file
     details = {}
     with open(filename, 'r') as file:
@@ -95,7 +85,8 @@ def read_model_details(filename):   # read detaied description from file
 
 # ridiculousJiangHu and other models 
 
-models = persona.models # read from json file.
+models = texts.models # read from json file.
+propp_model = models['propp']
 
 #ridiculousJiangHu_roles = {'侠客': '与反派敌对', '反派': '与侠客敌对', }
 
@@ -113,7 +104,7 @@ models = persona.models # read from json file.
 
 JiangHuActions = ['talk', 'say', 'gain', 'fight', 'defeat', 'kill', 'move', 'attend']
 
-def action_classify(word, bar=0.6):   # Suppose a word similarity bar to judge
+def jh_action_classify(word, bar=0.6):   # Suppose a word similarity bar to judge
     sims = {}
     for action in JiangHuActions:
         sims[action] = word_similarity(word, action)
@@ -137,7 +128,7 @@ def trim_conversation(words):   # trim “” and ‘’
     return thou_say
 
 def behvaior_analysis(name, doc):   # Analysis character with {name} from doc
-    __TO_BE_CONTINUED_
+    pass
 
 def script_extractor(doc): # extract scripts-like information from doc
     scripts = []
@@ -145,7 +136,7 @@ def script_extractor(doc): # extract scripts-like information from doc
     sents = doc.sents   # We'll use sentence for basic units
     for sent in sents:
         for token in sent:
-            if token.pos_ == 'VERB' and action_classify(token.text) == 'say':   # SAY
+            if token.pos_ == 'VERB' and jh_action_classify(token.text) == 'say':   # SAY
                 found_speaker = False
                 for child in token.children:
                     if child.dep_ == 'nsubj':
@@ -175,7 +166,7 @@ def script_extractor(doc): # extract scripts-like information from doc
                 scripts.append(script)
                 break
             elif token.ent_type_ == 'PERSON' and token.dep_ == 'nsubj':
-                action_related = action_classify(token.head.text)
+                action_related = jh_action_classify(token.head.text)
                 if (action_related in ['talk', 'kill', 'fight', 'defeat']):
                     found_erdos = False
                     for nbor in token.head.children:
@@ -190,26 +181,8 @@ def script_extractor(doc): # extract scripts-like information from doc
                     break
     return scripts
 
-# Semantic Search based on sentence transformer
-
-def semantic_search(corpus, queries, result_num): # # Find the closest {result_num} sentences of the corpus for each query sentence based on cosine similarity
-    corpus_embeddings = embedder.encode(corpus, convert_to_tensor = True)
-    top_k = min(result_num, len(corpus))
-    for query in queries:
-        query_embedding = embedder.encode(query, convert_to_tensor=True)
-        # We use cosine-similarity and torch.topk to find the highest 5 scores
-        cos_scores = util.pytorch_cos_sim(query_embedding, corpus_embeddings)[0]
-        top_results = torch.topk(cos_scores, k=top_k)
-
-        print("\n\n======================\n\n")
-        print("Query:", query)
-        print("\nTop %d most similar sentences in corpus:" %(top_k))
-
-        for score, idx in zip(top_results[0], top_results[1]):
-            print(corpus[idx], "(Score: {:.4f})".format(score))
-
 def write_script(book_name, book_prefix, slice_length, doc_type):  # Write scipts to files, slice the docs to increase performance
-    txts = books.read_chapters(book_name)
+    txts = texts.read_chapters(book_name)
     print('===Finish Reading===\n')
     chapters_num = len(txts)
     if chapters_num >= slice_length:
@@ -236,7 +209,7 @@ def write_script(book_name, book_prefix, slice_length, doc_type):  # Write scipt
 
 # Test Unit
 def test():
-    write_script(books.shendiao, 'shendiao', 3, 'cn')
+    write_script(texts.shendiao, 'shendiao', 3, 'cn')
     #docs.append(nlp(txt))
     #doc_milestone = list(persona.find_sents_with_specs(docs, ['PERSON', 'LOC', 'GPE', 'EVENT'])[1].values())
     #queries = list(propp_models.values())

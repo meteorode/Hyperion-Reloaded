@@ -27,3 +27,21 @@ sts_embedder = SentenceTransformer('./models/stsb-xlm-r-multilingual') # Optimiz
 def count_names_with_attrs(names, words_related, docs, name_attrs={'dep': ['nsubj']}, attrs_related={'pos': ['VERB', 'ROOT', 'ADJ', 'VERB|ROOT']}, count_num=20, result_cap=1024):    
     # count names with {name_attrs} and words_related with {attr_related} in docs, return a {'some key': sent} dict
     pass
+
+# Semantic Search based on sentence transformer
+
+def semantic_search(corpus, queries, result_num): # # Find the closest {result_num} sentences of the corpus for each query sentence based on cosine similarity
+    corpus_embeddings = embedder.encode(corpus, convert_to_tensor = True)
+    top_k = min(result_num, len(corpus))
+    for query in queries:
+        query_embedding = embedder.encode(query, convert_to_tensor=True)
+        # We use cosine-similarity and torch.topk to find the highest 5 scores
+        cos_scores = util.pytorch_cos_sim(query_embedding, corpus_embeddings)[0]
+        top_results = torch.topk(cos_scores, k=top_k)
+
+        print("\n\n======================\n\n")
+        print("Query:", query)
+        print("\nTop %d most similar sentences in corpus:" %(top_k))
+
+        for score, idx in zip(top_results[0], top_results[1]):
+            print(corpus[idx], "(Score: {:.4f})".format(score))
