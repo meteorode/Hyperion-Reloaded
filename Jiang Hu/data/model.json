@@ -104,7 +104,129 @@
     },
     {
         "model_name": "propp",
-        "": []
+        "Absentation": [
+            "Someone goes missing",
+            "A member of the family leaves the security of the home environment for some reason. This may be someone or perhaps is some other member of the family that someone will later need to rescue. In any case, this division of the cohesive family injects initial tension into the storyline."
+        ],
+        "Interdiction": [
+            "Hero is warned",
+            "someone is warned against some action (given an 'interdiction'). Typically this may be that someone intends finding the absented family member."
+        ],
+        "Violation of interdiction": [
+            "Guess what? someone ignores the interdiction (warning not to do something) and goes ahead."
+        ],
+        "Reconnaissance": [
+            "the other one now makes an active attempt at reconnaissance, for example searching for something valuable or trying to actively capture someone. They may speak with a member of the family who innocently divulges information or perhaps realizes that something is up and backs away in terror. They may also seek to meet someone, perhaps knowing already someone is special in some way.",
+            "Villain seeks something"
+        ],
+        "Delivery": [
+            "The villain gains information",
+            "the other one's seeking now pays off and he or she now acquires some form of information, often about the someone or victim. Other information can be gained, for example about a map or treasure location or the intent of the 'good guys'."
+        ],
+        "Trickery": [
+            "Villain attempts to deceive victim",
+            "the other one now presses further, often using the information gained in seeking to deceive someone or victim in some way, perhaps appearing in disguise. This may include capture of the victim and coercion, getting someone to give the other one something or persuading them that the other one is actually a friend and thereby gaining collaboration."
+        ],
+        "Complicity": [
+            "Unwitting helping of the enemy",
+            "The trickery of the other one now works and someone or victim naively acts in a way that helps the other one in some way. This may range from providing the other one with something (perhaps a map or magical weapon) to actively working against good people (perhaps the other one has persuaded someone that these other people are actually bad)."
+        ],
+        "Villainy and lack": [
+            "The need is identified",
+            "There are two parts to this stage, either or both of which may appear in the story. In the first stage, the other one causes some kind of harm, for example carrying away a victim or the desired magical object (which must be then be retrieved). Villainy may include theft, casting spells on people, murder, In the second stage, a sense of lack is identified, for example in someone's family or within a community, whereby something is identified as lost or something becomes desirable for some reason, for example a magical object that will save people in some way."
+        ],
+        "Mediation": [
+            "Hero discovers the lack",
+            "someone now discovers the act of villainy or lack, perhaps finding their family or community devastated or caught up in a state of anguish and woe."
+        ],
+        "Counteraction": [
+            "Hero chooses positive action",
+            "someone now decides to act in a way that will resolve the lack, for example finding a needed magical item, rescuing those who are captured or otherwise defeating the other one."
+        ],
+        "Departure": [
+            "Hero leave on mission",
+            "someone, having decided on the required action now leaves home in pursuit of the goal. This may be a great sending-off with ceremony and the wishes and hopes of the family or community laden on someone, perhaps seeming like a burden. It may also be a silent and secret departure in the middle of the night, as someone seeks to avoid perhaps the 'don't go' of a clinging parent."
+        ],
+        "Testing": [
+            "Before someone can receive help, they must first prove themselves worthy. This may be done by a series of events or mini-adventures within the story or may be a deliberate testing, typically by the donor or some other gatekeeper who will reward someone either by giving them some magical artefact, critical information or otherwise helping someone along the way. The test may be to perform some act, answer a riddle or otherwise prove mettle. Whilst the surface test may be physical, the actual test is often of inner quality associated with heroes, including courage, integrity and humility.",
+            "Hero is challenged to prove heroic qualities"
+        ],
+        "Reaction": [
+            "Hero responds to test",
+            "someone now responds to test, usually succeeding but sometimes failing and having to take another route. Tests may include taking great personal risks, battling with monsters, solving puzzles and enduring extremes of discomfort. someone may realize the need for the challenge and may view it as an irritation that is holding up the main goal. Importantly, they must show the qualities of someone, facing up difficulties as we all have to face tests in our own lifetimes."
+        ], 
+        "Acquisition": [
+            "Hero gains magical item",
+            "someone now acquires an item of some kind, often magical and usually being given by the donor as reward for passing the test. This may be potion, a weapon, and so on. The reward may also be more mundane, such as help from others or critical knowledge, but nevertheless is essential in helping someone in completing the quest."
+        ],
+        "Guidance": [
+            "Hero reaches destination",
+            "someone now moves on with the story, traveling to the region in which the object of the journey may be gained. This traveling may be a long journey or may be some form of magical transport, such as on a flying carpet or instantaneous transfer to the destination realm."
+        ],
+        "Struggle": [
+            "Hero and villain do battle", 
+            "someone now meets the other one, usually face-to-face, and they do battle. someone is now being tested fully and there is no way out, other than victory or defeat. the other one is a worthy opponent and someone may falter and nearly fail at many points."
+        ],
+        "Branding": [
+            "Hero is branded", 
+            "In or after the battle, someone is branded in some way, receiving something that changes them, usually permanently. The brand may well be a wound from the other one, perhaps poisonous or magical. It may also be the acquisition of a magical item such as a ring or item of clothing. The branding of someone is a life-changing experience."
+        ],
+        "Victory": [
+            "Villain is defeated", 
+            "At last the other one is defeated in some way, often through direct combat, in which they may be killed or spared after pleading. They may be vanquished by magical means whereby they disappear or are imprisoned, such as in a genie's bottle. They may also be banished, sent away to an unnamed and distant land where they can do no harm to someone or his constituency."
+        ],
+        "Resolution": [
+            "Initial misfortune or lack is resolved", 
+            "The original act of villainy is now undone by the conquest of the other one. Thus, for example, a spell may be broken, a treasure found or a captive freed. The initial lack is now resolved and the associated desire satisfied, and the reader feels a great sense of relief and satisfaction as the main story completes."
+        ],
+        "Return": [
+            "Hero sets out for home", 
+            "someone now sets out for home, hopefully uneventfully, although they may be carrying the treasure or artefact gained and bandits could be waiting in the wings."
+        ],
+        "Pursuit": [
+            "Hero is chased", 
+            "During the journey home, someone may be pursued by some aggressor who may seek to recover the treasure or perhaps just eat someone! The victorious procession may well turn to flight. someone has completed the mission and gained the treasure, and it may not be prudent to stand and fight. The pursuit may also be a race home with a competitor, perhaps a false hero, with the victor gaining the final reward."
+        ],
+        "Rescue": [
+            "pursuit ends", 
+            "The pursuit is terminated when something happens to rescue someone. This can take many forms, from the re-emergence of the helper to obstacles being placed in the way of the pursuer (by someone or friends), someone may be concealed or even transformed into another form."
+        ],
+        "Arrival": [
+            "Hero arrives unrecognized", 
+            "Unrecognized, someone arrives back in their home territory, or perhaps in other country along the way. The lack of recognition may be a deliberate ploy by someone who, having achieved so much, no longer seeks (and perhaps shuns) adulation. There may also be reason for secrecy as threat may still exist and the mission may not be fully complete until the treasure is handed over."
+        ],
+        "Claim": [
+            "False hero makes unfounded claims", 
+            "The false hero, where they appear in the story may arrive before someone and make claims such as having completed the mission themselves and perhaps that someone has died along the way, and thus giving reason for the false hero to win the princess. The false hero may also arrive late, openly challenging someone as being false. The role of the false hero can be very varied and they can be heroic in their own right. A major difference with someone is in who gets to marry the princess. Sometimes the false hero is known as such from early in the story. Sometimes also they are concealed, perhaps masquerading as a friend and helper right up to the last minute. Sometimes the existence of a traitor is known but who is not exposed until the last minute."
+        ],
+        "Task": [
+            "Difficult task proposed to the hero", 
+            "someone may now be asked to complete another task to demonstrate their true character and worth, including riddles, tests of endurance and other ordeal."
+        ],
+        "Solution": [
+            "Task is resolved", 
+            "The task proposed to someone is completed, demonstrating someone's integrity, character and true worth. Where the task is used to differentiate someone and false hero, the false hero fails and someone succeeds."
+        ],
+        "Recognition": [
+            "Hero is recognised", 
+            "The true hero is at last recognized, perhaps by the resolution of the final task (where used) and perhaps by the mark or brand that they gained during earlier combat with the main villain."
+        ],
+        "Exposure": [
+            "False hero is exposed", 
+            "By their actions in the final duel, competition or task versus someone, the false hero is at last seen to be what they are. They often expose themselves through the display of non-heroic actions, including cowardice, cheating and other false actions."
+        ],
+        "Transfiguration": [
+            "Hero is given a new appearance", 
+            "In recognition of someone's acknowledged achievements, they are transformed in some way to befit their new status. This may well be done through clothing, with new garments, a splendid cloak, and so on. Their wounds are dressed and their bodies cleansed. Whereas they may well have arrived tattered and dirty, they now are clean and attractive."
+        ],
+        "Punishment": [
+            "Villain is punished", 
+            "the other one (if not vanquished earlier) or false hero, now fully exposed, receives some punishment. This may be lenient, harsh or something just, depending on the story and perhaps mitigating circumstances and the kindness or severity of someone or other leading character."
+        ],
+        "Wedding": [
+            "Hero marries and ascends the throne",
+            "At last someone gets the final and just rewards for all of their actions. In classic tales this may well be marrying the beautiful princess and ascending to rule as king, living 'happily ever after'. In other stories, the accolade of heroism is enough and they retire to quiet lives or even go adventuring again."
+        ]
     },
     {
         "model_name": "big_five",
