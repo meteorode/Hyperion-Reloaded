@@ -165,7 +165,9 @@ def slice_doc_by_sparkle(doc, sparkles=['GPE', 'LOC', 'PRODUCT', 'WORK_OF_ART', 
         for i in range(sparkle_nums):
             if i == 0:
                 front_dis = sent_index_with_sparkles[i]
-            elif i == sparkle_nums:
+                rear_dis = sent_index_with_sparkles[i+1] - sent_index_with_sparkles[i]
+            elif i == sparkle_nums-1:
+                front_dis = sent_index_with_sparkles[i] - sent_index_with_sparkles[i-1]
                 rear_dis = len(sents) - sent_index_with_sparkles[i]
             else:
                 front_dis = sent_index_with_sparkles[i] - sent_index_with_sparkles[i-1]
