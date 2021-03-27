@@ -279,10 +279,12 @@ def test():
     test_txt = texts.read_chapters(texts.shediao)[0]
     test_doc = nlp(test_txt)
     slices = slice_doc_by_sparkle(test_doc)
+    results = []
     for s in slices:
         result = ''
         for sent in s:
             result += sent.text
-        print(result)
+        results.append(result)
+    print(results)
 
 test()
