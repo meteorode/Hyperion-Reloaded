@@ -153,7 +153,7 @@ def slice_doc_by_sparkle(doc, sparkles=['GPE', 'LOC', 'PRODUCT', 'WORK_OF_ART', 
     sents = list(doc.sents)
     slices = []
     sent_index_with_sparkles = []
-    for sent in doc:
+    for sent in doc.sents:
         sent_index = sents.index(sent)
         for token in doc:
             if token.ent_type_ in sparkles:
