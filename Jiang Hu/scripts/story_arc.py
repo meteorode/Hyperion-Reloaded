@@ -104,6 +104,25 @@ def text_classification(contents, model_name='propp', bar=0.3, top_k=3, is_duali
             final_result[item[0]] = item[1]
         return final_result
 
+def trim_conversation(words):   # trim “” and ‘’
+    thou_say = ''
+    quota_marks = {'“': '”', '‘': '’'}
+    for left in quota_marks:
+        if left in words:
+            temp_words = words.partition(left)[2]
+            if quota_marks[left] in temp_words:
+                thou_say = temp_words.rpartition(quota_marks[left])[0]
+            else:
+                thou_say = temp_words
+            return thou_say
+    return thou_say
+
+def summarization(doc): # Extract summary from a doc.
+    pass
+
+def behvaior_analysis(name, doc):   # Analysis character with {name} from doc
+    pass
+
 # JiangHu II script abstract
 # Conditions are clear, Actions would be like this:
 # <nsubj>[PERSON] {VERB}S='TALK TO' <dobj>[PERSON] (<> for dep_, {} for pos_, S for Semantics and [] for ent_type_)
@@ -128,24 +147,39 @@ def jh_action_classify(word, bar=0.6):   # Suppose a word similarity bar to judg
     else:
         return 'none'
 
-def trim_conversation(words):   # trim “” and ‘’
-    thou_say = ''
-    quota_marks = {'“': '”', '‘': '’'}
-    for left in quota_marks:
-        if left in words:
-            temp_words = words.partition(left)[2]
-            if quota_marks[left] in temp_words:
-                thou_say = temp_words.rpartition(quota_marks[left])[0]
+def slice_doc_by_sparkle(doc, sparkles=['GPE', 'LOC', 'PRODUCT', 'WORK_OF_ART', 'EVENT', 'MONEY'], sent_dis=3):
+    # Slice the doc by ent_type_ in spakles, with this algorithm:
+    # if dis(Sn,Sn+1) < sent_dis, Sn.rear = (Sn, ..Sn+1)
+    sents = list(doc.sents)
+    slices = []
+    sent_index_with_sparkles = []
+    for sent in doc:
+        sent_index = sents.index(sent)
+        for token in doc:
+            if token.ent_type_ in sparkles:
+                sent_index_with_sparkles.append(sent_index)
+    sparkle_nums = len(sent_index_with_sparkles)
+    if sparkle_nums == 0:   # No sparkle
+        return []
+    else:
+        for i in range(sparkle_nums):
+            if i == 0:
+                front_dis = sent_index_with_sparkles[i]
+            elif i == sparkle_nums:
+                rear_dis = len(sents) - sent_index_with_sparkles[i]
             else:
-                thou_say = temp_words
-            return thou_say
-    return thou_say
-
-def summarization(doc): # Extract summary from a doc.
-    pass
-
-def behvaior_analysis(name, doc):   # Analysis character with {name} from doc
-    pass
+                front_dis = sent_index_with_sparkles[i] - sent_index_with_sparkles[i-1]
+                rear_dis = sent_index_with_sparkles[i+1] - sent_index_with_sparkles[i]
+            if (front_dis >= sent_dis):
+                slice_start = sent_index_with_sparkles[i] - sent_dis
+            else:
+                slice_start = sent_index_with_sparkles[i-1]+1
+            if (rear_dis >= sent_dis):
+                slice_end = sent_index_with_sparkles[i] + sent_dis
+            else:
+                slice_end = sent_index_with_sparkles[i+1]-1
+            slices.append(sents[slice_start:slice_end])
+        return slices
 
 def script_extractor(doc, model_name='JiangHu', bar=0.25): # extract scripts-like information from doc
     scripts = []
@@ -232,11 +266,19 @@ def write_script(book_name, book_prefix, slice_length, doc_type):  # Write scipt
 def test():
     #txt = ['岂知杨康极是乖觉，只恐有变，对遗命一节绝口不提，直到在大会之中方始宣示。净衣派三老明知自己无份，也不失望，只消鲁有脚不任帮主，便遂心愿，又想杨康年轻，必可诱他就范。何况他衣着华丽，食求精美，决不会偏向污衣派。当下三人对望了一眼，各自点了点头。简长老道：“这位杨相公所持的，确是本帮圣物。众兄弟如有疑惑，请上前检视。”鲁有脚侧目斜睨杨康，心道：“凭你这小子也配作本帮帮主，统率天下各路丐帮？”伸手接过竹杖，见那杖碧绿晶莹，果是本帮帮主世代相传之物，心想，“必是洪帮主感念相救之德，是以传他']
     #print(text_classification(txt))    
-    write_script(texts.shediao, 'shediao', 3, 'cn')
+    #write_script(texts.shediao, 'shediao', 3, 'cn')
     #docs.append(nlp(txt))
     #doc_milestone = list(persona.find_sents_with_specs(docs, ['PERSON', 'LOC', 'GPE', 'EVENT'])[1].values())
     #queries = list(propp_models.values())
     #complex_queries = list(read_model_details('./propp.txt').values())
     #semantic_search(doc_milestone, complex_queries, 10)
+    test_txt = texts.read_chapters(texts.shediao)[0]
+    test_doc = nlp(test_txt)
+    slices = slice_doc_by_sparkle(test_doc)
+    for s in slices:
+        result = ''
+        for sent in s:
+            result += sent.text
+        print(result)
 
 test()
