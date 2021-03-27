@@ -178,8 +178,10 @@ def slice_doc_by_sparkle(doc, sparkles=['GPE', 'LOC', 'PRODUCT', 'WORK_OF_ART', 
                 slice_start = sent_index_with_sparkles[i-1]+1
             if (rear_dis >= sent_dis):
                 slice_end = sent_index_with_sparkles[i] + sent_dis
-            else:
+            elif i < sparkle_nums-1:
                 slice_end = sent_index_with_sparkles[i+1]-1
+            else:
+                slice_end = len(sents) - 1
             slices.append(sents[slice_start:slice_end])
         return slices
 
