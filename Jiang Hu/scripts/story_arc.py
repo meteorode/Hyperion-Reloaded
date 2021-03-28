@@ -95,8 +95,9 @@ def text_classification(contents, model_name='propp', bar=0.3, top_k=3, is_duali
             s_len = len(classify_model[key])
             for sent in classify_model[key]:
                 for c in contents:
-                    if (word_similarity(c, sent) >= bar):
-                        result[key] += word_similarity(c, sent, model_name='sts') / s_len
+                    result[key] += word_similarity(c, sent, model_name='sts') / s_len
+                    #if (word_similarity(c, sent) >= bar):
+                    #    result[key] += word_similarity(c, sent, model_name='sts') / s_len
         sorted_result = sort_dict(result)
         topk_items = list(sorted_result.items())[:top_k]
         final_result = {}
@@ -155,8 +156,8 @@ def slice_doc_by_sparkle(doc, sparkles=['GPE', 'LOC', 'PRODUCT', 'WORK_OF_ART', 
     sent_index_with_sparkles = []
     for sent in sents:
         sent_index = sents.index(sent)
-        for token in doc:
-            if token.ent_type_ in sparkles:
+        for token in sent:
+            if token.ent_type_ in sparkles and sent_index  not in sent_index_with_sparkles:
                 sent_index_with_sparkles.append(sent_index)
     sparkle_nums = len(sent_index_with_sparkles)
     if sparkle_nums == 0:   # No sparkle
@@ -281,10 +282,13 @@ def test():
     slices = slice_doc_by_sparkle(test_doc)
     results = []
     for s in slices:
-        result = ''
+        result = []
         for sent in s:
-            result += sent.text
+            result.append(sent.text)
         results.append(result)
-    print(results)
+    for result in results:
+        propp = text_classification(result)
+        jh_action = text_classification(result, model_name='JiangHu Scripts')
+        print(propp, jh_action, result)
 
 test()
