@@ -1,5 +1,24 @@
 # JiangHu @ Hyperion
 
+## GPS @ JiangHu
+
+The Generative Pre-Trained Script is an algorithm for:
+
+1.  Parse novels with a theme(e.g. Chinese Wuxia, fairy tales) into scripts like this:
+    -   Commands: (ADJ)nsubj(ADB)action(ADJ)obj
+    -   Scenario: list of cmds
+    -   State Machine: definition below:
+
+```mermaid
+
+graph TD;
+    S0[Scenario0]-->|CHOICE I|S1[Scenario I]
+    S0-->|CHOICE N|Sn{Scenario n} 
+    S0-->|FATE_STAY_NIGHT|E{Story End}
+```
+
+2.  __TO_BE_CONTINUED__
+
 ## Quad hero traits
 
 如图：
