@@ -17,7 +17,19 @@ graph TD;
     S0-->|FATE_STAY_NIGHT|E{Story End}
 ```
 
-2.  __TO_BE_CONTINUED__
+2.  We used [Pre-Defined Wuxia Plot Model](#Wuxia-Plot) and [Emotional Arcs](https://nofilmschool.com/2016/11/emotional-arcs-6-storytelling-kurt-vonnegut) to make a matrix to plot 
+each senario like:
+
+| ⬇️Wuxia Plots➡️Emotional Arcs | "Rags to riches" (rise) | "Tragedy", or "Riches to rags" (fall) | "Man in a hole" (fall-rise) | "Icarus" (rise-fall) | "Cinderella" (rise-fall-rise) | "Oedipus" (fall-rise-fall)
+|---|---|---|----|---|---|---
+| 比武 | 
+| 夺宝 |
+| 奇遇 |
+| 复仇 |
+| 远行 |
+| 慕艾 |
+| 其他 |
+
 
 ## Quad hero traits
 
