@@ -16,6 +16,14 @@ spacy.prefer_gpu()  # Using GPU to run programm
 nlp = spacy.load('zh_core_web_trf') # spacy 3.0 stable model.
 #en_nlp = spacy.load('en_core_web_trf')
 
+# spaCy tags, ner and dep_ definition:
+
+# dep_: ROOT, acl, advcl:loc, advmod, advmod:dvp, advmod:loc, advmod:rcomp, amod, amod:ordmod, appos, aux:asp, aux:ba, aux:modal, aux:prtmod, auxpass, 
+# case, cc, ccomp, compound:nn, compound:vc, conj, cop, dep, det, discourse, dobj, etc, mark, mark:clf, name, neg, nmod, nmod:assmod, nmod:poss, nmod:prep, 
+# nmod:range, nmod:tmod, nmod:topic, nsubj, nsubj:xsubj, nsubjpass, nummod, parataxis:prnmod, punct, xcomp
+
+# ner(ent_type_): CARDINAL, DATE, EVENT, FAC, GPE, LANGUAGE, LAW, LOC, MONEY, NORP, ORDINAL, ORG, PERCENT, PERSON, PRODUCT, QUANTITY, TIME, WORK_OF_ART
+
 sn = SenticNet()
 cn_sn = BabelSenticNet('cn')    # Use SenticNet to analysis.
 
