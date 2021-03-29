@@ -60,6 +60,7 @@ def semantic_search(corpus, queries, result_num): # # Find the closest {result_n
         cos_scores = util.pytorch_cos_sim(query_embedding, corpus_embeddings)[0]
         top_results = torch.topk(cos_scores, k=top_k)
         query_results[query] = top_results
+    return query_results
 
 models = texts.models
 
