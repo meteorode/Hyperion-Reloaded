@@ -1,6 +1,3 @@
-638 Primary Personality Traits
-Positive Traits (234 = 37%)
-
 Accessible
 Active
 Adaptable
@@ -235,7 +232,6 @@ Winning
 Wise
 Witty
 Youthful
-Neutral Traits (292 = 18%)
 Absentminded
 Aggressive
 Ambitious
@@ -348,7 +344,6 @@ Unpredicatable
 Unreligious
 Unsentimental
 Whimsical
-Negative Traits (292 = 46%)
 Abrasive
 Abrupt
 Agonizing
