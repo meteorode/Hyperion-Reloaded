@@ -33,6 +33,17 @@ p = Path('.')   # current Path
 embedder = SentenceTransformer('./models/distiluse-base-multilingual-cased')    # Trying use SentenceTransformer to re-calculate word_similarity
 sts_embedder = SentenceTransformer('./models/stsb-xlm-r-multilingual') # Optimized for Semantic Textual Similarity
 
+def word_similarity(w1, w2, model_name='default'):    # Use model.encode() and pytorch_cos_sim() to calc
+    if (model_name != 'sts'):
+        emb1 = embedder.encode(w1)
+        emb2 = embedder.encode(w2)
+    else:
+        emb1 = sts_embedder.encode(w1)
+        emb2 = sts_embedder.encode(w2)
+    
+    cos_sim = util.pytorch_cos_sim(emb1, emb2).item()   # convert an 1 dimensional tensor to float
+    return cos_sim
+
 def count_names_with_attrs(names, words_related, docs, name_attrs={'dep': ['nsubj']}, attrs_related={'pos': ['VERB', 'ROOT', 'ADJ', 'VERB|ROOT']}, count_num=20, result_cap=1024):    
     # count names with {name_attrs} and words_related with {attr_related} in docs, return a {'some key': sent} dict
     pass
@@ -42,23 +53,41 @@ def count_names_with_attrs(names, words_related, docs, name_attrs={'dep': ['nsub
 def semantic_search(corpus, queries, result_num): # # Find the closest {result_num} sentences of the corpus for each query sentence based on cosine similarity
     corpus_embeddings = embedder.encode(corpus, convert_to_tensor = True)
     top_k = min(result_num, len(corpus))
+    query_results = {}
     for query in queries:
         query_embedding = embedder.encode(query, convert_to_tensor=True)
-        # We use cosine-similarity and torch.topk to find the highest 5 scores
+        # We use cosine-similarity and torch.topk to find the highest top_k scores
         cos_scores = util.pytorch_cos_sim(query_embedding, corpus_embeddings)[0]
         top_results = torch.topk(cos_scores, k=top_k)
+        query_results[query] = top_results
 
-        print("\n\n======================\n\n")
-        print("Query:", query)
-        print("\nTop %d most similar sentences in corpus:" %(top_k))
+models = texts.models
 
-        for score, idx in zip(top_results[0], top_results[1]):
-            print(corpus[idx], "(Score: {:.4f})".format(score))
+en_sentiment = models['SenticNet En']
+cn_sentiment = models['SenticNet Cn']
 
-en_sentiment = model('SenticNet En')
-cn_sentiment = model('SenticNet Cn')
+corpus = list(en_sentiment.keys())
+queries = ['happy']
+print (semantic_search(corpus, queries, 3))
 
-def sentiment_analysis(doc, lang='cn'):    # Calc a score using this: if sn/cn_sn(word) then score += polar_value, else find whether word is in semantics_union, finally += similarity * score
+def calc_polarity_value(word, lang='cn'):  # If sn/cn_sn(word) then score += polar_value, else find whether word is in semantics_union, finally += similarity * score
+    semantics = {}
+    if lang == 'en':
+        for key in en_sentiment:
+            sms = sn.semantics(key)
+            semantics[key] = []
+            for sm in sms:
+                if sm not in semantics[key]:
+                    semantics[key].append(sm)
+        if word in en_sentiment:
+            score = en_sentiment[word]
+
+def sentiment_analysis(doc, lang='cn'):    # Calc a score using calc_polarity_value
+    score = 0.0
     if lang == 'en':    # English docs.
+        sentic_words = list(en_sentiment.keys())
         for token in doc:
-            if 
+            if token.text in sentic_words:
+                score += en_sentiment[token.text]
+    elif lang == 'cn':  # Chinese docs
+        pass
