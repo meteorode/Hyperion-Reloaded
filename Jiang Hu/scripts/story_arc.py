@@ -269,14 +269,6 @@ def write_script(book_name, book_prefix, slice_length, doc_type):  # Write scipt
 
 # Test Unit
 def test():
-    #txt = ['岂知杨康极是乖觉，只恐有变，对遗命一节绝口不提，直到在大会之中方始宣示。净衣派三老明知自己无份，也不失望，只消鲁有脚不任帮主，便遂心愿，又想杨康年轻，必可诱他就范。何况他衣着华丽，食求精美，决不会偏向污衣派。当下三人对望了一眼，各自点了点头。简长老道：“这位杨相公所持的，确是本帮圣物。众兄弟如有疑惑，请上前检视。”鲁有脚侧目斜睨杨康，心道：“凭你这小子也配作本帮帮主，统率天下各路丐帮？”伸手接过竹杖，见那杖碧绿晶莹，果是本帮帮主世代相传之物，心想，“必是洪帮主感念相救之德，是以传他']
-    #print(text_classification(txt))    
-    #write_script(texts.shediao, 'shediao', 3, 'cn')
-    #docs.append(nlp(txt))
-    #doc_milestone = list(persona.find_sents_with_specs(docs, ['PERSON', 'LOC', 'GPE', 'EVENT'])[1].values())
-    #queries = list(propp_models.values())
-    #complex_queries = list(read_model_details('./propp.txt').values())
-    #semantic_search(doc_milestone, complex_queries, 10)
     test_txt = texts.read_chapters(texts.shediao)[0]
     test_doc = nlp(test_txt)
     slices = slice_doc_by_sparkle(test_doc)
@@ -288,7 +280,7 @@ def test():
         results.append(result)
     for result in results:
         propp = text_classification(result)
-        jh_action = text_classification(result, model_name='JiangHu Scripts')
+        jh_action = text_classification(result, model_name='JiangHu Script')
         print(propp, jh_action, result)
 
 test()

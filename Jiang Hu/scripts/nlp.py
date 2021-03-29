@@ -10,6 +10,7 @@ import math
 import numpy as np
 from sentence_transformers import SentenceTransformer, util
 import torch
+import texts
 
 spacy.prefer_gpu()  # Using GPU to run programm
 
@@ -53,3 +54,11 @@ def semantic_search(corpus, queries, result_num): # # Find the closest {result_n
 
         for score, idx in zip(top_results[0], top_results[1]):
             print(corpus[idx], "(Score: {:.4f})".format(score))
+
+en_sentiment = model('SenticNet En')
+cn_sentiment = model('SenticNet Cn')
+
+def sentiment_analysis(doc, lang='cn'):    # Calc a score using this: if sn/cn_sn(word) then score += polar_value, else find whether word is in semantics_union, finally += similarity * score
+    if lang == 'en':    # English docs.
+        for token in doc:
+            if 
