@@ -14,11 +14,10 @@ from senticnet.babelsenticnet import BabelSenticNet
 import inspect
 import math
 import numpy as np
-#import persona
 import texts
 from sentence_transformers import SentenceTransformer, util
 import torch
-#import nlp
+import nlp
 
 # spaCy init
 
@@ -50,11 +49,6 @@ def retrieve_name(var):
             if len(names) > 0:
                 return names[0]
 
-def sort_dict(dict): # return a sorted dictionary by values
-    sorted_tuples = sorted(dict.items(), key=lambda item:item[1], reverse=True)   # return a sorted tuple by lambda function
-    sorted_dict = {k: v for k, v in sorted_tuples}
-    return sorted_dict
-
 def word_similarity(w1, w2, model_name='default'):    # Use model.encode() and pytorch_cos_sim() to calc
     if (model_name != 'sts'):
         emb1 = embedder.encode(w1)
@@ -83,28 +77,6 @@ propp_model = models['propp']
 
 #persona.sent_clustering(sent, doc, neighbor_num=5)
 
-def text_classification(contents, model_name='propp', bar=0.3, top_k=3, is_dualistic=False): # Classify a list of sent by model[model_name]
-    try:
-        classify_model = models[model_name]
-    except:
-        classify_model = models['propp']
-    result = {}
-    if (is_dualistic == False):
-        for key in classify_model:
-            result[key] = 0
-            s_len = len(classify_model[key])
-            for sent in classify_model[key]:
-                for c in contents:
-                    result[key] += word_similarity(c, sent, model_name='sts') / s_len
-                    #if (word_similarity(c, sent) >= bar):
-                    #    result[key] += word_similarity(c, sent, model_name='sts') / s_len
-        sorted_result = sort_dict(result)
-        topk_items = list(sorted_result.items())[:top_k]
-        final_result = {}
-        for item in topk_items:
-            final_result[item[0]] = item[1]
-        return final_result
-
 def trim_conversation(words):   # trim “” and ‘’
     thou_say = ''
     quota_marks = {'“': '”', '‘': '’'}
@@ -118,11 +90,11 @@ def trim_conversation(words):   # trim “” and ‘’
             return thou_say
     return thou_say
 
-def summarization(doc): # Extract summary from a doc.
-    pass
+vonnegut_model = models['Vonnegut']
 
-def behvaior_analysis(name, doc):   # Analysis character with {name} from doc
-    pass
+def emotional_arc_analysis(doc, lang='cn'):    # Analysis the doc using calc_polarity_value and the Vonnegut model.
+    score = 0.0
+    sents = doc.sents
 
 # JiangHu II script abstract
 # Conditions are clear, Actions would be like this:
@@ -142,49 +114,11 @@ def jh_action_classify(word, bar=0.6):   # Suppose a word similarity bar to judg
     sims = {}
     for action in JiangHuActions:
         sims[action] = word_similarity(word, action)
-    sorted_sims = sort_dict(sims)
+    sorted_sims = nlp.sort_dict(sims)
     if (list(sorted_sims.values())[0] >= bar):
         return list(sorted_sims.keys())[0]
     else:
         return 'none'
-
-def slice_doc_by_sparkle(doc, sparkles=['GPE', 'LOC', 'PRODUCT', 'WORK_OF_ART', 'EVENT', 'MONEY'], sent_dis=3):
-    # Slice the doc by ent_type_ in spakles, with this algorithm:
-    # if dis(Sn,Sn+1) < sent_dis, Sn.rear = (Sn, ..Sn+1)
-    sents = list(doc.sents)
-    slices = []
-    sent_index_with_sparkles = []
-    for sent in sents:
-        sent_index = sents.index(sent)
-        for token in sent:
-            if token.ent_type_ in sparkles and sent_index  not in sent_index_with_sparkles:
-                sent_index_with_sparkles.append(sent_index)
-    sparkle_nums = len(sent_index_with_sparkles)
-    if sparkle_nums == 0:   # No sparkle
-        return []
-    else:
-        for i in range(sparkle_nums):
-            if i == 0:
-                front_dis = sent_index_with_sparkles[i]
-                rear_dis = sent_index_with_sparkles[i+1] - sent_index_with_sparkles[i]
-            elif i == sparkle_nums-1:
-                front_dis = sent_index_with_sparkles[i] - sent_index_with_sparkles[i-1]
-                rear_dis = len(sents) - sent_index_with_sparkles[i]
-            else:
-                front_dis = sent_index_with_sparkles[i] - sent_index_with_sparkles[i-1]
-                rear_dis = sent_index_with_sparkles[i+1] - sent_index_with_sparkles[i]
-            if (front_dis >= sent_dis):
-                slice_start = sent_index_with_sparkles[i] - sent_dis
-            else:
-                slice_start = sent_index_with_sparkles[i-1]+1
-            if (rear_dis >= sent_dis):
-                slice_end = sent_index_with_sparkles[i] + sent_dis
-            elif i < sparkle_nums-1:
-                slice_end = sent_index_with_sparkles[i+1]-1
-            else:
-                slice_end = len(sents) - 1
-            slices.append(sents[slice_start:slice_end])
-        return slices
 
 def script_extractor(doc, model_name='JiangHu', bar=0.25): # extract scripts-like information from doc
     scripts = []
@@ -193,7 +127,7 @@ def script_extractor(doc, model_name='JiangHu', bar=0.25): # extract scripts-lik
     ent_table = {'GPE': ' MOVE TO: ', 'LOC': ' MOVE TO: ', 'PRODUCT': ' GAIN: ', 'MONEY': ' GAIN: ', 'WORK_OF_ART': ' GAIN: ', 'EVENT': ' ATTEND: '}
     action_table = {'TALK': ' TALK TO: ', 'DEFEAT': ' DEFEAT: ', 'FIGHT': ' FIGHT WITH: ', 'KILL': ' KILL: '}
     for sent in sents:
-        sent_in_JiangHu = text_classification([sent.text], model_name='JiangHu Script')
+        sent_in_JiangHu = nlp.text_classification([sent.text], model_name='JiangHu Script')
         if max(list(sent_in_JiangHu.values())) >= bar: # meanigful sent?
             sent_type = list(sent_in_JiangHu.keys())[0] # suppose sent_type is determined by text classification.
             for token in sent:
@@ -271,7 +205,7 @@ def write_script(book_name, book_prefix, slice_length, doc_type):  # Write scipt
 def test():
     test_txt = texts.read_chapters(texts.shediao)[0]
     test_doc = nlp(test_txt)
-    slices = slice_doc_by_sparkle(test_doc)
+    slices = nlp.slice_doc_by_sparkle(test_doc)
     results = []
     for s in slices:
         result = []
@@ -279,8 +213,8 @@ def test():
             result.append(sent.text)
         results.append(result)
     for result in results:
-        propp = text_classification(result)
-        jh_action = text_classification(result, model_name='JiangHu Script')
+        propp = nlp.text_classification(result)
+        jh_action = nlp.text_classification(result, model_name='JiangHu Script')
         print(propp, jh_action, result)
 
 test()

@@ -44,8 +44,19 @@ def word_similarity(w1, w2, model_name='default'):    # Use model.encode() and p
     cos_sim = util.pytorch_cos_sim(emb1, emb2).item()   # convert an 1 dimensional tensor to float
     return cos_sim
 
+def sort_dict(dict): # return a sorted dictionary by values
+    sorted_tuples = sorted(dict.items(), key=lambda item:item[1], reverse=True)   # return a sorted tuple by lambda function
+    sorted_dict = {k: v for k, v in sorted_tuples}
+    return sorted_dict
+
 def count_names_with_attrs(names, words_related, docs, name_attrs={'dep': ['nsubj']}, attrs_related={'pos': ['VERB', 'ROOT', 'ADJ', 'VERB|ROOT']}, count_num=20, result_cap=1024):    
     # count names with {name_attrs} and words_related with {attr_related} in docs, return a {'some key': sent} dict
+    pass
+
+def summarization(doc): # Extract summary from a doc.
+    pass
+
+def behvaior_analysis(name, doc):   # Analysis character with {name} from doc
     pass
 
 # Semantic Search based on sentence transformer
@@ -107,12 +118,62 @@ def calc_polarity_value(word, lang='cn'):  # If sn/cn_sn(word) then score += pol
             score = sentiment_words[sema_word] * sema_score
     return score
 
-def sentiment_analysis(doc, lang='cn'):    # Calc a score using calc_polarity_value
-    score = 0.0
-    if lang == 'en':    # English docs.
-        sentic_words = list(en_sentiment.keys())
-        for token in doc:
-            if token.text in sentic_words:
-                score += en_sentiment[token.text]
-    elif lang == 'cn':  # Chinese docs
-        pass
+def slice_doc_by_sparkle(doc, sparkles=['GPE', 'LOC', 'PRODUCT', 'WORK_OF_ART', 'EVENT', 'MONEY'], sent_dis=3):
+    # Slice the doc by ent_type_ in spakles, with this algorithm:
+    # if dis(Sn,Sn+1) < sent_dis, Sn.rear = (Sn, ..Sn+1)
+    sents = list(doc.sents)
+    slices = []
+    sent_index_with_sparkles = []
+    for sent in sents:
+        sent_index = sents.index(sent)
+        for token in sent:
+            if token.ent_type_ in sparkles and sent_index  not in sent_index_with_sparkles:
+                sent_index_with_sparkles.append(sent_index)
+    sparkle_nums = len(sent_index_with_sparkles)
+    if sparkle_nums == 0:   # No sparkle
+        return []
+    else:
+        for i in range(sparkle_nums):
+            if i == 0:
+                front_dis = sent_index_with_sparkles[i]
+                rear_dis = sent_index_with_sparkles[i+1] - sent_index_with_sparkles[i]
+            elif i == sparkle_nums-1:
+                front_dis = sent_index_with_sparkles[i] - sent_index_with_sparkles[i-1]
+                rear_dis = len(sents) - sent_index_with_sparkles[i]
+            else:
+                front_dis = sent_index_with_sparkles[i] - sent_index_with_sparkles[i-1]
+                rear_dis = sent_index_with_sparkles[i+1] - sent_index_with_sparkles[i]
+            if (front_dis >= sent_dis):
+                slice_start = sent_index_with_sparkles[i] - sent_dis
+            else:
+                slice_start = sent_index_with_sparkles[i-1]+1
+            if (rear_dis >= sent_dis):
+                slice_end = sent_index_with_sparkles[i] + sent_dis
+            elif i < sparkle_nums-1:
+                slice_end = sent_index_with_sparkles[i+1]-1
+            else:
+                slice_end = len(sents) - 1
+            slices.append(sents[slice_start:slice_end])
+        return slices
+
+def text_classification(contents, model_name='propp', bar=0.3, top_k=3, is_dualistic=False): # Classify a list of sent by model[model_name]
+    try:
+        classify_model = models[model_name]
+    except:
+        classify_model = models['propp']
+    result = {}
+    if (is_dualistic == False):
+        for key in classify_model:
+            result[key] = 0
+            s_len = len(classify_model[key])
+            for sent in classify_model[key]:
+                for c in contents:
+                    result[key] += word_similarity(c, sent, model_name='sts') / s_len
+                    #if (word_similarity(c, sent) >= bar):
+                    #    result[key] += word_similarity(c, sent, model_name='sts') / s_len
+        sorted_result = sort_dict(result)
+        topk_items = list(sorted_result.items())[:top_k]
+        final_result = {}
+        for item in topk_items:
+            final_result[item[0]] = item[1]
+        return final_result
