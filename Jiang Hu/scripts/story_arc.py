@@ -91,10 +91,33 @@ def trim_conversation(words):   # trim “” and ‘’
     return thou_say
 
 vonnegut_model = models['Vonnegut']
+key_pos = ['ADJ', 'ADV', 'NOUN', 'VERB', 'PROPN', 'INTJ']
 
-def emotional_arc_analysis(doc, lang='cn'):    # Analysis the doc using calc_polarity_value and the Vonnegut model.
-    score = 0.0
-    sents = doc.sents
+def emotional_arc_analysis(doc, lang='cn', keyattrs = key_pos):    # Analysis the doc using calc_polarity_value and the Vonnegut model.
+    five_points = shapes = []
+    doc_slices = nlp.slice_doc_by_sparkle(doc)
+    result = {}
+    for ds in doc_slices:   
+        assert (len(ds) > 4) == True # assert len(one_slice) >= 5 so that we could calc the shape.
+        gap = len(ds)/5
+        ds_sent = ''
+        for i in range(0, len(ds)-1, gap):
+            selected_sent = ds[i]
+            ds_sent += selected_sent.text
+            score = 0.0
+            for token in selected_sent:
+                if token.pos_ in keyattrs:
+                    score += nlp.calc_polarity_value(token.text)
+            five_points.append(score)
+        for i in range(4):
+            if five_points[i] < five_points[i+1]:
+                shapes.append(-1)
+            else:
+                shapes.append(1)
+        for key in vonnegut_model:
+            if vonnegut_model[key] == shapes:
+                result[ds_sent] = key
+    return result
 
 # JiangHu II script abstract
 # Conditions are clear, Actions would be like this:

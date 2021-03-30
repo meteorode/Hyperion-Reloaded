@@ -118,7 +118,7 @@ def calc_polarity_value(word, lang='cn'):  # If sn/cn_sn(word) then score += pol
             score = sentiment_words[sema_word] * sema_score
     return score
 
-def slice_doc_by_sparkle(doc, sparkles=['GPE', 'LOC', 'PRODUCT', 'WORK_OF_ART', 'EVENT', 'MONEY'], sent_dis=3):
+def slice_doc_by_sparkle(doc, ent_sparkles=['GPE', 'LOC', 'PRODUCT', 'WORK_OF_ART', 'EVENT', 'MONEY'], sent_dis=3):
     # Slice the doc by ent_type_ in spakles, with this algorithm:
     # if dis(Sn,Sn+1) < sent_dis, Sn.rear = (Sn, ..Sn+1)
     sents = list(doc.sents)
@@ -127,7 +127,7 @@ def slice_doc_by_sparkle(doc, sparkles=['GPE', 'LOC', 'PRODUCT', 'WORK_OF_ART', 
     for sent in sents:
         sent_index = sents.index(sent)
         for token in sent:
-            if token.ent_type_ in sparkles and sent_index  not in sent_index_with_sparkles:
+            if token.ent_type_ in ent_sparkles and sent_index  not in sent_index_with_sparkles:
                 sent_index_with_sparkles.append(sent_index)
     sparkle_nums = len(sent_index_with_sparkles)
     if sparkle_nums == 0:   # No sparkle
