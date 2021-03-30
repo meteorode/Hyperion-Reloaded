@@ -44,12 +44,13 @@
         ]
     },
     {
-        "model_name": "big_five",
-        "Openness": [],
-        "Conscientiousness": [],
-        "Extraversion": [],
-        "Agreeableness": [],
-        "Neuroticism": []
+        "model_name": "Vonnegut",
+        "Rags to riches": [0, 1, 2, 3, 4],
+        "Tragedy": [4, 3, 2, 1, 0],
+        "Man in a hole": [3, 2, 1, 2, 3],
+        "Icarus": [1, 2, 3, 2, 1],
+        "Cinderella": [2, 3, 2, 1, 3],
+        "Oedipus": [3, 2, 1, 2, 1]
     },
     {
         "model_name": "ridiculousJiangHu",
