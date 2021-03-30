@@ -55,21 +55,21 @@ def semantic_search(corpus, queries, result_num): # # Find the closest {result_n
     top_k = min(result_num, len(corpus))
     query_results = {}
     for query in queries:
+        query_results[query] = []
         query_embedding = embedder.encode(query, convert_to_tensor=True)
         # We use cosine-similarity and torch.topk to find the highest top_k scores
         cos_scores = util.pytorch_cos_sim(query_embedding, corpus_embeddings)[0]
         top_results = torch.topk(cos_scores, k=top_k)
-        query_results[query] = top_results
+        tmp_result = {}
+        for score, idx in zip(top_results[0], top_results[1]):
+            tmp_result[corpus[idx]] = score.item()
+        query_results[query].append(tmp_result)
     return query_results
 
 models = texts.models
 
 en_sentiment = models['SenticNet En']
 cn_sentiment = models['SenticNet Cn']
-
-corpus = list(en_sentiment.keys())
-queries = ['happy']
-print (semantic_search(corpus, queries, 3))
 
 def calc_polarity_value(word, lang='cn'):  # If sn/cn_sn(word) then score += polar_value, else find whether word is in semantics_union, finally += similarity * score
     semantics = {}
