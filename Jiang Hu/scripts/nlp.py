@@ -72,16 +72,40 @@ en_sentiment = models['SenticNet En']
 cn_sentiment = models['SenticNet Cn']
 
 def calc_polarity_value(word, lang='cn'):  # If sn/cn_sn(word) then score += polar_value, else find whether word is in semantics_union, finally += similarity * score
-    semantics = {}
-    if lang == 'en':
-        for key in en_sentiment:
-            sms = sn.semantics(key)
-            semantics[key] = []
-            for sm in sms:
-                if sm not in semantics[key]:
-                    semantics[key].append(sm)
-        if word in en_sentiment:
-            score = en_sentiment[word]
+    if lang == 'cn':
+        sentiment_words = cn_sentiment
+        net = cn_sn
+    else:
+        sentiment_words = en_sentiment
+        net = sn
+    if word in sentiment_words:
+        #print('Word found in default dict!')
+        score = sentiment_words[word]
+    else:
+        try:    # try to find the word's polarity value first
+            score = float(net.polarity_value(word))
+            #print('Word polarity value found!')
+        except:
+            top_results = list(semantic_search(list(sentiment_words.keys()), [word], 5).values())[0][0]    # search top 5 words to determine positive or negative
+            #print(word, top_results)
+            positive = negative = 0
+            for key in top_results:
+                if sentiment_words[key] >= 0:
+                    positive += 1
+                elif sentiment_words[key] < 0:
+                    negative += 1
+            is_positive = (positive - negative > 0)
+            for key in top_results:
+                if (is_positive == True) and (sentiment_words[key] >= 0):
+                    sema_score = top_results[key]
+                    sema_word = key
+                    break
+                elif (is_positive == False) and (sentiment_words[key] < 0):
+                    sema_score = top_results[key]
+                    sema_word = key
+                    break
+            score = sentiment_words[sema_word] * sema_score
+    return score
 
 def sentiment_analysis(doc, lang='cn'):    # Calc a score using calc_polarity_value
     score = 0.0
