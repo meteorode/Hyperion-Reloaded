@@ -23,7 +23,7 @@ import nlp
 
 spacy.prefer_gpu()  # Using GPU to run programm
 
-nlp = spacy.load('zh_core_web_trf') # spacy 3.0 stable model.
+cn_nlp = spacy.load('zh_core_web_trf') # spacy 3.0 stable model.
 en_nlp = spacy.load('en_core_web_trf')
 
 sn = SenticNet()
@@ -98,25 +98,25 @@ def emotional_arc_analysis(doc, lang='cn', keyattrs = key_pos):    # Analysis th
     doc_slices = nlp.slice_doc_by_sparkle(doc)
     result = {}
     for ds in doc_slices:   
-        assert (len(ds) > 4) == True # assert len(one_slice) >= 5 so that we could calc the shape.
-        gap = len(ds)/5
-        ds_sent = ''
-        for i in range(0, len(ds)-1, gap):
-            selected_sent = ds[i]
-            ds_sent += selected_sent.text
-            score = 0.0
-            for token in selected_sent:
-                if token.pos_ in keyattrs:
-                    score += nlp.calc_polarity_value(token.text)
-            five_points.append(score)
-        for i in range(4):
-            if five_points[i] < five_points[i+1]:
-                shapes.append(-1)
-            else:
-                shapes.append(1)
-        for key in vonnegut_model:
-            if vonnegut_model[key] == shapes:
-                result[ds_sent] = key
+        if len(ds) > 4: # assert len(one_slice) >= 5 so that we could calc the shape.
+            gap = len(ds)/5
+            ds_sent = ''
+            for i in range(0, len(ds)-1, gap):
+                selected_sent = ds[i]
+                ds_sent += selected_sent.text
+                score = 0.0
+                for token in selected_sent:
+                    if token.pos_ in keyattrs:
+                        score += nlp.calc_polarity_value(token.text)
+                five_points.append(score)
+            for i in range(4):
+                if five_points[i] < five_points[i+1]:
+                    shapes.append(-1)
+                else:
+                    shapes.append(1)
+            for key in vonnegut_model:
+                if vonnegut_model[key] == shapes:
+                    result[ds_sent] = key
     return result
 
 # JiangHu II script abstract
@@ -227,17 +227,8 @@ def write_script(book_name, book_prefix, slice_length, doc_type):  # Write scipt
 # Test Unit
 def test():
     test_txt = texts.read_chapters(texts.shediao)[0]
-    test_doc = nlp(test_txt)
-    slices = nlp.slice_doc_by_sparkle(test_doc)
-    results = []
-    for s in slices:
-        result = []
-        for sent in s:
-            result.append(sent.text)
-        results.append(result)
-    for result in results:
-        propp = nlp.text_classification(result)
-        jh_action = nlp.text_classification(result, model_name='JiangHu Script')
-        print(propp, jh_action, result)
+    test_doc = cn_nlp(test_txt)
+    test_ana = emotional_arc_analysis(test_doc)
+    print(test_ana)
 
 test()

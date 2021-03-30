@@ -14,7 +14,7 @@ import texts
 
 spacy.prefer_gpu()  # Using GPU to run programm
 
-nlp = spacy.load('zh_core_web_trf') # spacy 3.0 stable model.
+cn_nlp = spacy.load('zh_core_web_trf') # spacy 3.0 stable model.
 #en_nlp = spacy.load('en_core_web_trf')
 
 # spaCy tags, ner and dep_ definition:
