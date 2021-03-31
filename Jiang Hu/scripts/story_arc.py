@@ -94,12 +94,13 @@ vonnegut_model = models['Vonnegut']
 key_pos = ['ADJ', 'ADV', 'NOUN', 'VERB', 'PROPN', 'INTJ']
 
 def emotional_arc_analysis(doc, lang='cn', keyattrs = key_pos):    # Analysis the doc using calc_polarity_value and the Vonnegut model.
-    five_points = shapes = []
     doc_slices = nlp.slice_doc_by_sparkle(doc)
     result = {}
     for ds in doc_slices:   
         if len(ds) > 4: # assert len(one_slice) >= 5 so that we could calc the shape.
-            gap = len(ds)/5
+            five_points = []
+            shapes = []
+            gap = int(len(ds)/5)
             ds_sent = ''
             for i in range(0, len(ds)-1, gap):
                 selected_sent = ds[i]
@@ -226,9 +227,13 @@ def write_script(book_name, book_prefix, slice_length, doc_type):  # Write scipt
 
 # Test Unit
 def test():
-    test_txt = texts.read_chapters(texts.shediao)[0]
-    test_doc = cn_nlp(test_txt)
-    test_ana = emotional_arc_analysis(test_doc)
-    print(test_ana)
+    txts = texts.read_chapters(texts.shediao)
+    print('===Finish Reading===')
+    for txt in txts:
+        doc = cn_nlp(txt)
+        print('===Chapter %d spacy NLP done!==='%(txts.index(txt)+1))
+        ana = emotional_arc_analysis(doc)
+        for key in ana:
+            print('===Sparkles===\n', key, '\nEmotional Shape: ', ana[key], '==========\n')
 
 test()
