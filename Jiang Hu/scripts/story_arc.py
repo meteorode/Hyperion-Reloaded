@@ -9,14 +9,9 @@
 
 import spacy
 from pathlib import Path
-from senticnet.senticnet import SenticNet
-from senticnet.babelsenticnet import BabelSenticNet
 import inspect
 import math
-import numpy as np
 import texts
-from sentence_transformers import SentenceTransformer, util
-import torch
 import nlp
 
 # spaCy init
@@ -26,13 +21,7 @@ spacy.prefer_gpu()  # Using GPU to run programm
 cn_nlp = spacy.load('zh_core_web_trf') # spacy 3.0 stable model.
 en_nlp = spacy.load('en_core_web_trf')
 
-sn = SenticNet()
-cn_sn = BabelSenticNet('cn')    # Use SenticNet to analysis.
-
 p = Path('.')   # current Path
-
-embedder = SentenceTransformer('./models/distiluse-base-multilingual-cased')
-sts_embedder = SentenceTransformer('./models/stsb-xlm-r-multilingual') # Optimized for Semantic Textual Similarity
 
 # Fundamental modules
 
@@ -48,17 +37,6 @@ def retrieve_name(var):
             names = [var_name for var_name, var_val in fi.frame.f_locals.items() if var_val is var]
             if len(names) > 0:
                 return names[0]
-
-def word_similarity(w1, w2, model_name='default'):    # Use model.encode() and pytorch_cos_sim() to calc
-    if (model_name != 'sts'):
-        emb1 = embedder.encode(w1)
-        emb2 = embedder.encode(w2)
-    else:
-        emb1 = sts_embedder.encode(w1)
-        emb2 = sts_embedder.encode(w2)
-    
-    cos_sim = util.pytorch_cos_sim(emb1, emb2).item()   # convert an 1 dimensional tensor to float
-    return cos_sim
 
 # Define heroes
 
@@ -137,7 +115,7 @@ JiangHuActions = ['talk', 'say', 'gain', 'fight', 'defeat', 'kill', 'move', 'att
 def jh_action_classify(word, bar=0.6):   # Suppose a word similarity bar to judge
     sims = {}
     for action in JiangHuActions:
-        sims[action] = word_similarity(word, action)
+        sims[action] = nlp.word_similarity(word, action)
     sorted_sims = nlp.sort_dict(sims)
     if (list(sorted_sims.values())[0] >= bar):
         return list(sorted_sims.keys())[0]
@@ -167,7 +145,6 @@ def script_extractor(doc, model_name='JiangHu', bar=0.25): # extract scripts-lik
                         # Originally used by the followers of Pythagoreanism, who claimed this or that proposition to be uttered by Pythagoras himself.
                     dixit = trim_conversation(sent.text)
                     script = nsubj + ' SAY: ' + dixit
-                    print(script)
                     scripts.append(script)
                     break
                 elif token.ent_type_ in ['GPE', 'LOC', 'PRODUCT', 'MONEY', 'WORK_OF_ART', 'EVENT'] and sent_type in ['MOVE', 'GAIN', 'ATTEND']: # MOVE TO/GAIN/ATTEND
@@ -181,7 +158,6 @@ def script_extractor(doc, model_name='JiangHu', bar=0.25): # extract scripts-lik
                     if (found_sb == False):
                         nsubj = '宋兵乙'
                     script = nsubj + ent_table[ent] + dobj
-                    print(script)
                     scripts.append(script)
                     break
                 elif token.ent_type_ == 'PERSON' and token.dep_ == 'nsubj':
@@ -194,7 +170,6 @@ def script_extractor(doc, model_name='JiangHu', bar=0.25): # extract scripts-lik
                         if (found_erdos == False):
                             dobj = '路人甲'
                         script = nsubj + action_table[sent_type] + dobj
-                        print(script)
                         scripts.append(script)
                         break
     return scripts
@@ -212,7 +187,7 @@ def write_script(book_name, book_prefix, slice_length, doc_type):  # Write scipt
         for p in range(min(slice_length, chapters_num)):
             txt = txts[min(i*3+p, chapters_num-1)]
             if doc_type == 'cn':
-                doc = nlp(txt)
+                doc = cn_nlp(txt)
             elif doc_type == 'en':
                 doc = en_nlp(txt)
             print('===spaCy NLP done!===\n')
