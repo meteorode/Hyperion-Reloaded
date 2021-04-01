@@ -98,6 +98,42 @@ def emotional_arc_analysis(doc, lang='cn', keyattrs = key_pos):    # Analysis th
                     result[ds_sent] = key
     return result
 
+wuxia_battle_model = models['wuxia_battle']
+battle_words = []
+for key in wuxia_battle_model:
+    battle_words += wuxia_battle_model[key]
+
+def is_battle_word(word, lang='cn', bar=0.8):    # Check whether a word is a battle word in model[wuxia_battle] 
+    if (word in battle_words):
+        return True
+    elif (list(nlp.semantic_search(battle_words, [word], 1)[word][0].values())[0] >= bar):  # SO UGLY...
+        return True
+    return False
+
+def check_dual_pairs(doc, lang='cn'): # return pairs with [PERSON], by check battle status and nsubj/dobj.
+    pairs = {}
+    for sent in list(doc.sents):
+        nsubj = []
+        dobj = []
+        is_battle = False
+        for token in sent:
+            if token.ent_type_ == 'PERSON' and token.dep_ == 'nsubj':
+                nsubj.append(token.text)
+            elif token.ent_type_ == 'PERSON' and token.dep_ == 'dobj':
+                dobj.append(token.text)
+            if is_battle_word(token.text) == True:
+                is_battle = True
+        if (is_battle == True) and (len(nsubj) > 0) and (len(dobj) > 0):
+            for ns in nsubj:
+                if (ns not in pairs):
+                    pairs[ns] = dobj
+                else:
+                    pairs[ns] += dobj
+    return pairs
+
+def battle_result_analysis(doc, lang='cn'): # return {p1} <score> {p2} <score}
+    pass
+
 # JiangHu II script abstract
 # Conditions are clear, Actions would be like this:
 # <nsubj>[PERSON] {VERB}S='TALK TO' <dobj>[PERSON] (<> for dep_, {} for pos_, S for Semantics and [] for ent_type_)
@@ -207,8 +243,10 @@ def test():
     for txt in txts:
         doc = cn_nlp(txt)
         print('===Chapter %d spacy NLP done!==='%(txts.index(txt)+1))
-        ana = emotional_arc_analysis(doc)
-        for key in ana:
-            print('===Sparkles===\n', key, '\nEmotional Shape: ', ana[key], '==========\n')
+        fighters = check_dual_pairs(doc)
+        print(fighters)
+        #ana = emotional_arc_analysis(doc)
+        #for key in ana:
+        #    print('===Sparkles===\n', key, '\nEmotional Shape: ', ana[key], '==========\n')
 
 test()
