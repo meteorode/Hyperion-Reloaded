@@ -10,25 +10,31 @@ Cards() is a data structure used to:
 
 ## Template
 
+A simple card structure would be defined like this:
+
 ```json
-{
-    "Roles":
-    [
+    {
+        "name": "",
+        "image name": "",
+        "type": "",
+        "play cost":
+        [
 
-    ],
-    "Actions":
-    [
+        ],
+        "instant effect": 
+        [
 
-    ],
-    "Gears":
-    [
+        ],
+        "onboard effect":
+        [
 
-    ],
-    "Skills":
-    [
+        ],
+        "description":
+        [
 
-    ]
-}
+        ],
+        "script name": ""
+    }
 ```
 
 ## Keywords definition
