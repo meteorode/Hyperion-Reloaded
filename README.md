@@ -11,7 +11,8 @@
     -   video game version of board/card games
     -   make other video games
 2.  JiangHu is a Wuxia theme game trying to used Hyperion engine
-    -   See [Persona](Jiang%20Hu/scripts/persona.py) for details.
+    -   See [Persona](Jiang%20Hu/scripts/persona.py) for Persona analysis.
+    -   See [Story Arc](Jiang%20Hu/scripts/story_arc.py) for story arc analysis.
 3.  Map Tools 将形式化（甚至更进一步的，自然语言化）的地图描述解析成一个M*N的tiles map，每个tile上可以放置一些事先规定好的Obj，包括但不限于：
     *   Heroes
     *   Friends
@@ -22,10 +23,6 @@
     *   Resources
 4.  Mechanics and Theme are still under construction
 5.  NLP is an experiment tried to
-    -  挑出若干人物，看能否给出时间线
-        *   分析人物相关的「形容词」
     -  试图寻找分析「战斗结果」的语言模型
     -  设计script 模版，看能否自动往里面填入数据
-    -  统计token.ent, 看能否获取有用的位置信息
-    -  Count Events.
 6.  Quests is designed to generate scripts/quests in games.
