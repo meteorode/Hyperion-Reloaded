@@ -9,8 +9,13 @@
 
 ## Script Generation Tasks
 
-1.  
-
-## Content Genartion Tasks
-
-1.  
+1.  World structure(Pre-defined)
+    -   Locations
+    -   NPCs
+    -   Actions
+    -   Objects
+    -   Attrs
+2.  Story generation
+    -   
+3.  Script generation(from world and story)
+    -   
