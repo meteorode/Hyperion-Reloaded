@@ -18,4 +18,6 @@
 2.  Story generation
     -   
 3.  Script generation(from world and story)
-    -   
+    -   把语法和语义分开？
+        *   任务链
+        *   Story Arc
