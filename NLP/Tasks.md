@@ -16,7 +16,7 @@
     -   Objects
     -   Attrs
 2.  Story generation
-    -   
+    -   Using all NPCs as PCs to encounter with the World? 
 3.  Script generation(from world and story)
     -   把语法和语义分开？
         *   任务链
