@@ -30,3 +30,8 @@ class NPC:  # Try to make Characters live, NPC has attrs like name, age, lifespa
         self.atk = atk
         self.lifespan = lifespan
         self.favor = favor  # relationship with other NPC
+
+def game(): # One game loop
+    is_game_end = False
+    while (is_game_end == False):
+        pass
