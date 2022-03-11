@@ -18,3 +18,9 @@
 #   -   NPC will die while reached lifespan
 #   -   Babies would be born while <Married> and <Time passed>
 #   -   Game would be end while only one NPC left, or find BE, HE objs.
+
+import random
+
+class NPC:  # 
+    def __init__(self):
+        pass
