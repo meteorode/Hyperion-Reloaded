@@ -21,6 +21,12 @@
 
 import random
 
-class NPC:  # 
-    def __init__(self):
-        pass
+class NPC:  # Try to make Characters live, NPC has attrs like name, age, lifespan, etc
+    def __init__(self, name='吴茗', age=18, gender='Male', hp=100,  atk=23, lifespan=73, favor={'吴茗':100}):
+        self.name = name
+        self.age = age
+        self.gender = gender
+        self.hp = hp
+        self.atk = atk
+        self.lifespan = lifespan
+        self.favor = favor  # relationship with other NPC
