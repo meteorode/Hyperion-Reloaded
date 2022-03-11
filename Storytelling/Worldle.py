@@ -10,5 +10,11 @@
 # Objs: Treasure, Weapon, Poison, BE, HE.
 
 # Game loop:
-#   - 
-#
+#   -   Each Turn NPCs randomly move to a location, and time randomly passed
+#   -   While two NPCs are at same location, randomly choose an action
+#   -   While only single NPC at a location, trying find sth with some probability
+# Game End:
+#   -   NPC will die while killed in <Fight>
+#   -   NPC will die while reached lifespan
+#   -   Babies would be born while <Married> and <Time passed>
+#   -   Game would be end while only one NPC left, or find BE, HE objs.
