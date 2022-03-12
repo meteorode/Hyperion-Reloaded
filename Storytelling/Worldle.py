@@ -35,9 +35,10 @@ npc_a = NPC()
 npc_b = NPC(name = '陆小凤', age = randint(28, 42), lifespan= randint(75, 88))
 npc_c = NPC(name = '郭襄', age = randint(16, 27), gender = 'Female', lifespan = randint(60, 100))
 init_npcs = [npc_a, npc_b, npc_c]
+init_locations = ['村镇', '市集', '郊外']
 
 class Game: # Global vars in a game, like year, day, hour, is_end, etc
-    def __init__(self, year=0, day=0, hour=0, is_over=False, npcs=[]):
+    def __init__(self, year=0, day=0, hour=0, is_over=False, npcs=[], locs=[]):
         self.year = year
         self.day = day
         self.hour = hour
@@ -46,6 +47,10 @@ class Game: # Global vars in a game, like year, day, hour, is_end, etc
         if len(npcs) > 0:
             for npc in npcs:
                 self.npcs.append(npc)
+        self.locs = []
+        if len(locs) > 0:
+            for loc in locs:
+                self.locs.append(loc)
 
     def time_pass_by(self, year=0, day=0, hour=1): # Game time passed
         old_year = self.year
