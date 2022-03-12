@@ -44,14 +44,23 @@ class Game: # Global vars in a game, like year, day, hour, is_end, etc
             self.npcs = []
 
     def time_pass_by(self, year=0, day=0, hour=1): # Game time passed
-        self.year += year
-        self.day += day
         self.hour += hour
+        while (self.hour >= 24):
+            self.day += 1
+            self.hour -= 24
+        self.day += day
+        while (self.day >= 365):
+            self.year += 1
+            self.day -= 365
+        self.year += year
 
 def life_game(): # One game loop
     new_game = Game()
     while (new_game.is_over == False):  # Not game over
-        if random.randint(1, 100) <= 10:
-
+        if random.randint(1, 100) <= 10: # 10% chance fast pass
+            rand_year = randint(1,5)
+            rand_day = randint(1, 200)
+            
         else:
             new_game.time_pass_by()  # Each turn should cost sometime.
+
