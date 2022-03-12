@@ -32,16 +32,21 @@ class NPC:  # Try to make Characters live, NPC has attrs like name, age, lifespa
         self.favor = favor  # relationship with other NPC
 
 class Game: # Global vars in a game, like year, day, hour, is_end, etc
-    def __init__(self, year=0, day=0, hour=0, is_over=False):
+    def __init__(self, year=0, day=0, hour=0, is_over=False, npcs = ):
         self.year = year
         self.day = day
         self.hour = hour
         self.is_over = is_over
 
     def time_pass_by(self, year=0, day=0, hour=1): # Game time passed
-        pass
+        self.year += year
+        self.day += day
+        self.hour += hour
 
 def life_game(): # One game loop
     new_game = Game()
     while (new_game.is_over == False):  # Not game over
-        new_game.time_pass_by()  # Each turn should cost sometime.
+        if random.randint(1, 100) <= 10:
+
+        else:
+            new_game.time_pass_by()  # Each turn should cost sometime.
