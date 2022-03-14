@@ -20,6 +20,7 @@
 #   -   Game would be end while only one NPC left, or find BE, HE objs.
 
 from random import *
+from select import select
 
 class NPC:  # Try to make Characters live, NPC has attrs like name, age, lifespan, etc
     def __init__(self, name='吴茗', age=18, gender='Male', hp=100,  atk=23, lifespan=73, favor={'吴茗':100}):
@@ -30,12 +31,15 @@ class NPC:  # Try to make Characters live, NPC has attrs like name, age, lifespa
         self.atk = atk
         self.lifespan = lifespan
         self.favor = favor  # relationship with other NPC
+        self.location = self.name + '的家'  # NPC's current location.
 
 npc_a = NPC()
 npc_b = NPC(name = '陆小凤', age = randint(28, 42), lifespan= randint(75, 88))
 npc_c = NPC(name = '郭襄', age = randint(16, 27), gender = 'Female', lifespan = randint(60, 100))
 init_npcs = [npc_a, npc_b, npc_c]
 init_locations = ['村镇', '市集', '郊外']
+for inpc in init_npcs:
+    init_locations.append(inpc.location)
 
 class Game: # Global vars in a game, like year, day, hour, is_end, etc
     def __init__(self, year=0, day=0, hour=0, is_over=False, npcs=[], locs=[]):
@@ -81,6 +85,8 @@ def life_game(): # One game loop
 
         else:
             new_game.time_pass_by()  # Each turn should cost sometime.
+        for npc in new_game.npcs:   # NPCs act in turn.
+            npc.location = choice(init_locations)   # Everyone has their destination.
         if (len(new_game.npcs) == 1):
             new_game.is_over = True
     print('Game Over!')
