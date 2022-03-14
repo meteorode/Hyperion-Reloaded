@@ -82,14 +82,17 @@ def life_game(): # One game loop
             rand_day = randint(1, 300)
             rand_hour = randint(1,24)
             new_game.time_pass_by(rand_year, rand_day, rand_hour)
-
         else:
             new_game.time_pass_by()  # Each turn should cost sometime.
-        for npc in new_game.npcs:   # NPCs act in turn.
+        loc_with_npc = {}
+        for loc in init_locations:
+            loc_with_npc[loc] = []
+        for npc in new_game.npcs:   # NPCs act in turn.        
             npc.location = choice(init_locations)   # Everyone has their destination.
+            loc_with_npc[npc.location].append(npc.name)
+        #print(loc_with_npc)
         if (len(new_game.npcs) == 1):
             new_game.is_over = True
     print('Game Over!')
 
-for i in range(10):
-    life_game()
+life_game()
