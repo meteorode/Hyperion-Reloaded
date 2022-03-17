@@ -46,8 +46,13 @@ def search_npc_by_name(npcs, name):   # as title.
         if npc.name == name:
             return npc
 
+def talk_with(npc_one, npc_two): # Talk with each other, conversation to be updated.
+    print (npc_one.name + ' 与 ' + npc_two.name + ' 进行了一番友好的交谈')
+
 def take_two(npc_one, npc_two): # Two npcs do something together.
-    print (npc_one.name + ' 与 ' + npc_two.name + ' 进行了一番友好的交谈')    # _TO_BE_UPDATED_
+    action_roulette = randint(1,6) # roll d6 to select action, __TO_BE_UPDATED_
+    if (action_roulette == 1):  # TALK
+        talk_with(npc_one, npc_two)    
 
 class Game: # Global vars in a game, like year, day, hour, is_end, etc
     def __init__(self, year=0, day=0, hour=0, is_over=False, npcs=[], locs=[]):
