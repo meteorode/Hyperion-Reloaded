@@ -53,6 +53,7 @@ def take_two(npc_one, npc_two): # Two npcs do something together.
     action_roulette = randint(1,6) # roll d6 to select action, __TO_BE_UPDATED_
     if (action_roulette == 1):  # TALK
         talk_with(npc_one, npc_two)    
+    elif (action_roulette == 2):    # 
 
 class Game: # Global vars in a game, like year, day, hour, is_end, etc
     def __init__(self, year=0, day=0, hour=0, is_over=False, npcs=[], locs=[]):
