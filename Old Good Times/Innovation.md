@@ -2,9 +2,16 @@
 
 ## Ideas
 
+
+
 ## Mechanics
+
+
 
 ## Prototypes
 
+
+
 ## Themes
+
 
