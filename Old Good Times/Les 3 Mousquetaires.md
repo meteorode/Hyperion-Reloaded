@@ -9,3 +9,5 @@
 ## Alice: draw-a-line sentene forming rogue
 
 ## 云球狼人杀
+
+## rJ Internationl AKA rock-paper-scissors game.
