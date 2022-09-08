@@ -5,7 +5,7 @@
 
 ## Loop 24 hrs
 
-## Diablo Match 3
+## Diablo Match 3 + draw-a-line Rogue
 
 ## Alice: draw-a-line sentene forming rogue
 
