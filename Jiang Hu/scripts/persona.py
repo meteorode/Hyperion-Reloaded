@@ -520,5 +520,5 @@ def test():
     result2 = personality_traits_analysis('shediao', docs, names, 'big_five', sents_dict=names_with_sents, mining_type='sents', is_dualistic=True)
     write_parsing_result('shediao', result2, 'big_five')
 
-#test()
+test()
 #test2()
