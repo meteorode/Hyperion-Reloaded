@@ -12,7 +12,7 @@ from sentence_transformers import SentenceTransformer, util
 import torch
 import texts
 
-spacy.prefer_gpu()  # Using GPU to run programm
+# spacy.prefer_gpu()  # Using GPU to run programm
 
 cn_nlp = spacy.load('zh_core_web_trf') # spacy 3.0 stable model.
 #en_nlp = spacy.load('en_core_web_trf')

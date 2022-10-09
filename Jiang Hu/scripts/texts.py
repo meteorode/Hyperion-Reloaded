@@ -3,7 +3,9 @@
 from pathlib import Path
 import json
 
-p = Path('.')
+current_path = Path(__file__).parent.absolute()
+p = Path(__file__).parent.parent.absolute()
+
 
 # 飞雪连天射白鹿，笑书神侠倚碧鸳
 
@@ -63,7 +65,7 @@ alice.sort()
 
 def read_names(category ='novels', author='jinyong'):
     names = []
-    with open('%s/%s/person_list.txt' %(category, author), 'r') as file:
+    with open(p.joinpath('%s/%s/person_list.txt' %(category, author)), 'r') as file:
         lines = file.readlines()
         for line in lines:
             names.append(line.rstrip('\n'))
@@ -86,7 +88,7 @@ def read_model_config(filename):    # Read model config like wuxia{}, big_five{}
             model_as_dict[key] = model
     return model_as_dict
 
-models = read_model_config('./data/model.json')
+models = read_model_config(p.joinpath('data/model.json'))
 
 jinyong_names = read_names()
 #gulong_names = read_names(author='gulong')

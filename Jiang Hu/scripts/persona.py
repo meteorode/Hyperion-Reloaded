@@ -2,6 +2,7 @@
 
 # Initilization
 
+from tkinter import N
 import spacy
 from collections import Counter
 #from tabulate import tabulate
@@ -13,11 +14,11 @@ import inspect
 import math
 import numpy as np
 import texts
-from sentence_transformers import SentenceTransformer, util
+# from sentence_transformers import SentenceTransformer, util
 import torch
 #import nlp
 
-spacy.prefer_gpu()  # Using GPU to run programm
+# spacy.prefer_gpu()  # Using GPU to run programm
 
 #nlp = spacy.load("zh_core_web_lg")
 nlp = spacy.load('zh_core_web_trf') # spacy 3.0 stable model.
@@ -29,7 +30,7 @@ cn_sn = BabelSenticNet('cn')    # Use SenticNet to analysis.
 p = Path('.')   # current Path
 
 #embedder = SentenceTransformer('./models/distiluse-base-multilingual-cased')    # Trying use SentenceTransformer to re-calculate word_similarity
-embedder = SentenceTransformer('./models/stsb-xlm-r-multilingual') # Optimized for Semantic Textual Similarity
+#embedder = SentenceTransformer('./models/stsb-xlm-r-multilingual') # Optimized for Semantic Textual Similarity
 
 # Methods to get var name as string.
 
@@ -158,10 +159,13 @@ def has_en_sentic(word): # En version
         return False
 
 def word_similarity(word1, word2):  # Use model.encode() and pytorch_cos_sim() to calc
-    emb1 = embedder.encode(word1)
-    emb2 = embedder.encode(word2)
+    #emb1 = embedder.encode(word1)
+    #emb2 = embedder.encode(word2)
     
-    cos_sim = util.pytorch_cos_sim(emb1, emb2).item()   # convert an 1 dimensional tensor to float
+    #cos_sim = util.pytorch_cos_sim(emb1, emb2).item()   # convert an 1 dimensional tensor to float
+    w1 = nlp(word1)
+    w2 = nlp(word2)
+    cos_sim = w1.similarity(w2)
     return cos_sim
 
 def word_vec_similarity(vec1, vec2):    # vec1 and vec2 should be a dict
