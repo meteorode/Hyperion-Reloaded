@@ -7,7 +7,7 @@ I've decided to upgrate Hyperion to version 2023, And coz I'm too lazy to make a
 
 ## Structure
 
-  - [THE BOOK]() : Model to convert stories to structured data like [SwiftData](https://developer.apple.com/xcode/swiftdata/)
+  - [THE BOOK](THE%20BOOK/README.md) : Model to convert stories to structured data like [SwiftData](https://developer.apple.com/xcode/swiftdata/)
   - [DIVINE PEN]() : Model to convert those data to a script named mBasic(.mb) using in the games.
 
 ## mBasic
