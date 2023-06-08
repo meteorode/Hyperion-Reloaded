@@ -6,7 +6,8 @@
 
 ## 目录结构
 
-1.  Cards() is a data structure used to:   
+1.  'AMONG THE STARS': New Start.
+2.  Cards() is a data structure used to:   
     -   create pdf/jpeg files for print
     -   video game version of board/card games
     -   make other video games
