@@ -2,7 +2,7 @@
 
 ## Intro
 
-  Since [AIGC](https://arxiv.org/abs/2303.04226) and MR(https://www.apple.com/apple-vision-pro) developed so fast, 
+  Since [AIGC](https://arxiv.org/abs/2303.04226) and [MR](https://www.apple.com/apple-vision-pro) developed so fast, 
 I've decided to upgrate Hyperion to version 2023, And coz I'm too lazy to make a new repo, ALL CODE WOULD BE HERE.
 
 ## Structure
